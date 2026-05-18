@@ -9,46 +9,54 @@
         body {
             background-color: #0B0C10;
         }
-        .text-shadow-premium {
-            text-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+        /* Programmatic Fire-to-Cool Environmental Canvas Setup */
+        .gradient-canvas {
+            background: linear-gradient(to right, rgba(185, 28, 28, 0.2) 0%, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0) 60%, rgba(6, 182, 212, 0.15) 100%);
         }
     </style>
 </head>
-<body class="text-white font-sans antialiased selection:bg-cyan-500/30 min-h-screen relative overflow-x-hidden flex items-center justify-center">
+<body class="text-white font-sans antialiased selection:bg-cyan-500/30 min-h-screen flex items-center justify-center relative overflow-x-hidden">
 
-    <div class="absolute inset-0 w-full h-full flex flex-col md:flex-row pointer-events-none z-0 select-none opacity-80" aria-hidden="true">
-        <div class="w-full h-1/2 md:h-full md:w-1/2 bg-cover bg-left md:bg-center" style="background-image: url('Gemini_Generated_Image_tun1jntun1jntun1 (1)~2.png');"></div>
-        <div class="w-full h-1/2 md:h-full md:w-1/2 bg-cover bg-right md:bg-center border-t md:border-t-0 md:border-l border-white/5" style="background-image: url('1779061756419~2.png');"></div>
-    </div>
+    <div class="absolute inset-0 gradient-canvas pointer-events-none" aria-hidden="true"></div>
 
-    <main class="relative z-10 w-full max-w-xl mx-auto px-6 py-12 text-center" role="main">
+    <main class="relative z-10 w-full max-w-xl mx-auto px-6 py-12" role="main">
         
-        <header class="mb-12 select-none">
+        <header class="text-center mb-8 select-none">
             <h1 class="text-4xl md:text-5xl font-black tracking-tighter text-white uppercase">
                 FLASHY<span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-cyan-400">AF</span>™
             </h1>
         </header>
 
-        <section class="backdrop-blur-md bg-black/60 border border-white/10 rounded-2xl p-8 md:p-10 shadow-2xl mb-8" aria-labelledby="form-heading">
+        <section class="backdrop-blur-md bg-black/60 border border-white/10 rounded-2xl p-8 md:p-10 shadow-2xl space-y-6" aria-labelledby="main-headline">
             
-            <div class="mb-8">
-                <h2 id="form-heading" class="text-3xl md:text-4xl font-black tracking-tight text-white uppercase mb-4 leading-tight">
-                    HOT FLASHES JUST MET<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">THEIR MATCH</span> IN FLASHYAF.
+            <div class="flex items-center justify-center gap-2 select-none">
+                <span class="relative flex h-2.5 w-2.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-500 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-600"></span>
+                </span>
+                <p class="text-xs font-bold tracking-widest text-orange-400 uppercase">SYSTEM ACTIVE // BETA PHASE</p>
+            </div>
+
+            <div class="text-center space-y-4">
+                <h2 id="main-headline" class="text-3xl md:text-4xl font-black tracking-tight leading-tight text-white uppercase">
+                    HOT FLASHES JUST MET THEIR MATCH IN FLASHYAF.
                 </h2>
-                <p class="text-base font-medium text-white/90 leading-relaxed mb-4">
-                    Support In Real-Time, when you need it most. Take control back and understand your body better.
+                <p class="text-lg md:text-xl font-extrabold text-cyan-400 tracking-wide">
+                    Support In Real-Time, when you need it most.
                 </p>
-                <p class="text-base font-medium text-white/90 leading-relaxed">
-                    Coming soon FLASHYAF App. Join the community engineering a fierce, high-performance future for women. Help make a real difference first.
+                <p class="text-base text-white/80 font-medium max-w-md mx-auto leading-relaxed">
+                    Take control back and understand your body better. Coming soon: FLASHYAF App. Join the community engineering a fierce, high-performance future for women.
                 </p>
             </div>
 
-            <div class="max-w-md mx-auto space-y-4">
-                <p class="text-sm md:text-base font-black tracking-wide text-white uppercase select-none">
-                    Early access for the first 500 beta testers to help start building the data needed.
+            <hr class="border-white/10 my-6" aria-hidden="true">
+
+            <div class="space-y-4">
+                <p class="text-sm font-bold text-center tracking-wide text-orange-400 uppercase select-none">
+                    🚀 Early access for the first 500 beta testers to help start building the data needed.
                 </p>
-                
-                <form action="https://usebasin.com/f/36f02f703edd" method="POST" class="space-y-4">
+
+                <form action="https://usebasin.com/f/36f02f703edd" method="POST" class="space-y-4 max-w-md mx-auto">
                     <div class="relative">
                         <label for="email" class="sr-only">Email Address</label>
                         <input 
@@ -56,26 +64,26 @@
                             id="email" 
                             name="email" 
                             required 
-                            placeholder="Enter email for private clearance" 
-                            class="w-full px-5 py-4 bg-black/80 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-base font-medium transition-all duration-200"
+                            placeholder="Enter your email to claim access" 
+                            class="w-full px-5 py-4 bg-black/80 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-base font-semibold transition-all duration-200"
                             aria-required="true"
                         >
                     </div>
 
                     <button 
                         type="submit" 
-                        class="w-full py-4 px-6 bg-gradient-to-r from-orange-600 to-cyan-500 hover:from-orange-500 hover:to-cyan-400 text-black font-black text-base uppercase tracking-wider rounded-xl transition-all duration-300 transform active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-cyan-400 shadow-lg shadow-cyan-500/20 min-h-[48px]"
+                        class="w-full py-4 px-6 bg-gradient-to-r from-orange-600 to-cyan-500 hover:from-orange-500 hover:to-cyan-400 text-black font-black text-base uppercase tracking-wider rounded-xl transition-all duration-300 transform active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-cyan-400 shadow-xl shadow-cyan-500/10 min-h-[48px]"
                     >
-                        Claim VIP Clearance
+                        Sign up to help make a difference
                     </button>
                 </form>
             </div>
-            
+
         </section>
 
-        <footer class="mt-8 select-none">
-            <p class="text-xs font-bold tracking-widest text-white/30 uppercase">
-                FLASHYAF™ APP // COHORT 01 INITIALIZING // STEALTH MODE
+        <footer class="mt-8 text-center select-none">
+            <p class="text-xs font-bold tracking-widest text-white/20 uppercase">
+                Stealth Architecture // Tier 0.01 Verification Complete
             </p>
         </footer>
 
