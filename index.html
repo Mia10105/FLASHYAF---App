@@ -7,39 +7,57 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            background-color: #06070a;
+            background-color: #030406;
         }
-        /* 0.01% Premium Visual Ambient Glow Effects */
-        .glow-fire {
-            background: radial-gradient(circle, rgba(234, 88, 12, 0.15) 0%, rgba(0,0,0,0) 70%);
+        /* 0.01% Tier Loud, High-Saturation Fire Engine Red and Sky Blue Glow Infrastructure */
+        .glow-fire-intense {
+            background: radial-gradient(circle, #FF0000 0%, #FF5722 40%, rgba(3,4,6,0) 75%);
+            opacity: 0.45;
         }
-        .glow-ice {
-            background: radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, rgba(0,0,0,0) 70%);
+        .glow-ice-intense {
+            background: radial-gradient(circle, #00A2FF 0%, #0077FF 45%, rgba(3,4,6,0) 75%);
+            opacity: 0.4;
         }
-        /* High-Definition Smooth Transitions */
-        .glass-panel {
-            background: rgba(10, 11, 16, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+        /* High-Definition Smooth Panel Backdrop with Subtle Flame Face Pattern */
+        .glass-panel-premium {
+            background: rgba(6, 7, 10, 0.93);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            position: relative;
+        }
+        .glass-panel-premium::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBvcGFjaXR5PSIwLjA1Ij48ZyBmaWxsPSIjRkZGRkZGIj48cGF0aCBkPSJNNTAgMEMyMi40IDAgMCAyMi40IDAgNTB2MjBDMCA5Ny42IDIyLjQgMTIwIDUwIDEyMHM1MC0yMi40IDUwLTUwTDUwIDIwQzEwMCAyMi40IDc3LjYgMCA1MCAwWiIvPjwvZz48L3N2Zz4=');
+            background-repeat: repeat;
+            background-size: 200px;
+            opacity: 0.05;
+            pointer-events: none;
         }
     </style>
 </head>
-<body class="text-white font-sans antialiased selection:bg-cyan-500/30 min-h-screen flex items-center justify-center relative overflow-x-hidden p-4 md:p-0">
+<body class="text-white font-sans antialiased selection:bg-cyan-500/40 min-h-screen flex items-center justify-center relative overflow-x-hidden p-4 md:p-0">
 
-    <div class="absolute top-0 -left-20 w-[400px] h-[400px] glow-fire pointer-events-none select-none" aria-hidden="true"></div>
-    <div class="absolute bottom-0 -right-20 w-[400px] h-[400px] glow-ice pointer-events-none select-none" aria-hidden="true"></div>
+    <div class="absolute top-12 -left-36 w-[600px] h-[600px] glow-fire-intense pointer-events-none select-none" aria-hidden="true"></div>
+    <div class="absolute bottom-12 -right-36 w-[600px] h-[600px] glow-ice-intense pointer-events-none select-none" aria-hidden="true"></div>
 
-    <main class="relative z-10 w-full max-w-xl mx-auto py-8 md:py-12" role="main">
+    <div class="absolute left-6 top-1/2 -translate-y-1/2 text-5xl opacity-40 select-none hidden lg:block filter drop-shadow-[0_0_15px_#FF5722]">🔥</div>
+    <div class="absolute right-6 top-1/2 -translate-y-1/2 text-5xl opacity-40 select-none hidden lg:block filter drop-shadow-[0_0_15px_#00A2FF]">❄️</div>
+
+    <main class="relative z-10 w-full max-w-xl mx-auto py-6 md:py-10" role="main">
         
-        <header class="text-center mb-8 select-none">
+        <header class="text-center mb-8 select-none flex flex-col items-center gap-4">
+            <img src="FAF Flame Face PD Cover.png" alt="FLASHYAF™ Flame Face Identity" class="w-32 h-32 md:w-40 md:h-40 filter drop-shadow-[0_0_20px_rgba(0,162,255,0.3)]">
             <h1 class="text-4xl md:text-5xl font-black tracking-tighter text-white uppercase">
-                FLASHY<span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-cyan-400 animate-pulse">AF</span>™
+                FLASHY<span class="text-transparent bg-clip-text bg-gradient-to-r from-[#FF5722] to-[#00A2FF] animate-pulse">AF</span>™
             </h1>
         </header>
 
-        <section class="glass-panel border border-white/10 rounded-[32px] p-8 md:p-12 shadow-[0_0_50px_rgba(0,0,0,0.8)] relative overflow-hidden space-y-8">
+        <section class="glass-panel-premium border border-white/10 rounded-[32px] p-8 md:p-12 shadow-[0_0_60px_rgba(0,0,0,0.9)] relative overflow-hidden space-y-8">
             
-            <div class="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent"></div>
+            <div class="absolute top-0 left-0 w-1/2 h-[3px] bg-gradient-to-r from-transparent to-[#FF0000]"></div>
+            <div class="absolute top-0 right-0 w-1/2 h-[3px] bg-gradient-to-r from-[#0077FF] to-transparent"></div>
             
             <div class="flex items-center justify-center gap-2 select-none">
                 <span class="relative flex h-2 w-2">
@@ -55,10 +73,10 @@
                 </h2>
                 
                 <div class="space-y-2">
-                    <p class="text-lg md:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-orange-400 to-cyan-400 tracking-wide uppercase">
+                    <p class="text-lg md:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#FF0000] via-[#FF5722] to-[#00A2FF] tracking-wide uppercase">
                         HOT FLASHES JUST MET THEIR MATCH.
                     </p>
-                    <p class="text-sm font-bold text-white/80 tracking-wide">
+                    <p class="text-sm font-bold text-white/90 tracking-wide">
                         Support In Real-Time. Hands-Free Intervention.
                     </p>
                 </div>
@@ -72,10 +90,10 @@
 
             <div class="space-y-6">
                 <div class="text-center space-y-2 select-none bg-white/[0.02] border border-white/5 rounded-2xl p-4">
-                    <p class="text-base font-black tracking-wide text-orange-500 uppercase">
+                    <p class="text-base font-black tracking-wide text-[#FF5722] uppercase">
                         🚀 EARLY ACCESS DROP LIMITED TO 100 PIONEERS
                     </p>
-                    <p class="text-xs font-bold tracking-normal text-cyan-400/90 max-w-sm mx-auto">
+                    <p class="text-xs font-bold tracking-wide text-cyan-400 max-w-sm mx-auto">
                         ⚠️ Currently prioritizing the first 50 slots for Smartwatch & Wearable users.
                     </p>
                 </div>
@@ -89,14 +107,14 @@
                             name="email" 
                             required 
                             placeholder="Enter your email to claim access" 
-                            class="w-full px-5 py-4 bg-black/50 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-base font-semibold transition-all duration-200 shadow-inner"
+                            class="w-full px-5 py-4 bg-black/60 border border-white/20 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-base font-semibold transition-all duration-200 shadow-inner"
                             aria-required="true"
                         >
                     </div>
 
                     <button 
                         type="submit" 
-                        class="w-full py-4 px-6 bg-gradient-to-r from-orange-600 to-cyan-500 hover:from-orange-500 hover:to-cyan-400 text-black font-black text-base uppercase tracking-wider rounded-xl transition-all duration-300 transform active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-cyan-400 shadow-[0_0_30px_rgba(6,182,212,0.2)] min-h-[48px]"
+                        class="w-full py-4 px-6 bg-gradient-to-r from-[#FF0000] via-[#FF5722] to-[#00A2FF] hover:from-[#FF5722] hover:to-[#00F2FE] text-black font-black text-base uppercase tracking-wider rounded-xl transition-all duration-300 transform active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-cyan-400 shadow-[0_0_35px_rgba(255,87,34,0.25)] min-h-[48px]"
                     >
                         SECURE YOUR INVITE SLOT
                     </button>
