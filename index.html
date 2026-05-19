@@ -6,28 +6,23 @@
     <title>FLASHYAF™ | Take Control Back</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            background-color: #000000;
-        }
-        /* 0.01% Tier Intense Fire Engine Red & Sky Blue Radiating Split Layer */
-        .brand-split-bg-vivid {
-            background: linear-gradient(to right, #FF0000 0%, rgba(255, 87, 34, 0.4) 15%, rgba(0, 0, 0, 0) 35%, rgba(0, 0, 0, 0) 65%, rgba(0, 162, 255, 0.4) 85%, #00A2FF 100%);
+        /* Top 0.01% Tier Loud, High-Saturation Mood Altering Background Split */
+        .vibrant-split-bg {
+            background: linear-gradient(to right, #FF0000 0%, #FF0000 50%, #00A2FF 50%, #00A2FF 100%);
         }
     </style>
 </head>
-<body class="text-white font-sans antialiased selection:bg-cyan-500/30 min-h-screen flex items-center justify-center relative overflow-x-hidden">
+<body class="text-white font-sans antialiased vibrant-split-bg min-h-screen flex items-center justify-center relative overflow-x-hidden p-4 md:p-0">
 
-    <div class="absolute inset-0 brand-split-bg-vivid pointer-events-none select-none" aria-hidden="true"></div>
-
-    <main class="relative z-10 w-full max-w-xl mx-auto px-6 py-12" role="main">
+    <main class="relative z-10 w-full max-w-xl mx-auto py-8 md:py-12" role="main">
         
         <header class="text-center mb-8 select-none">
-            <h1 class="text-4xl md:text-5xl font-black tracking-tighter text-white uppercase">
+            <h1 class="text-4xl md:text-5xl font-black tracking-tighter text-white uppercase drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
                 FLASHY<span class="text-transparent bg-clip-text bg-gradient-to-r from-[#FF5722] to-[#00A2FF]">AF</span>™
             </h1>
         </header>
 
-        <section class="backdrop-blur-md bg-black/75 border border-white/10 rounded-3xl p-8 md:p-12 shadow-2xl space-y-8" aria-labelledby="main-headline">
+        <section class="bg-[#000000] border border-white/20 rounded-3xl p-8 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.7)] space-y-8" aria-labelledby="main-headline">
             
             <div class="flex items-center justify-center gap-2 select-none">
                 <span class="relative flex h-2.5 w-2.5">
@@ -72,7 +67,7 @@
                             name="email" 
                             required 
                             placeholder="Enter your email to claim access" 
-                            class="w-full px-5 py-4 bg-black border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-base font-semibold transition-all duration-200"
+                            class="w-full px-5 py-4 bg-[#111111] border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-base font-semibold transition-all duration-200"
                             aria-required="true"
                         >
                     </div>
@@ -88,11 +83,11 @@
 
         </section>
 
-        <header class="text-center mt-8 select-none">
+        <footer class="mt-8 text-center select-none">
             <p class="text-xs font-bold tracking-widest text-white/20 uppercase">
                 Stealth Architecture // Tier 0.01 Data Lockdown Complete
             </p>
-        </header>
+        </footer>
 
     </main>
 
