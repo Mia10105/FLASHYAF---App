@@ -7,63 +7,75 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            background-color: #0B0C10;
+            background-color: #06070a;
         }
-        /* Programmatic Side-by-Side Fire and Ice Identity Layer */
-        .brand-split-bg {
-            background: linear-gradient(to right, rgba(185, 28, 28, 0.25) 0%, rgba(0, 0, 0, 0) 35%, rgba(0, 0, 0, 0) 65%, rgba(6, 182, 212, 0.2) 100%);
+        /* 0.01% Premium Visual Ambient Glow Effects */
+        .glow-fire {
+            background: radial-gradient(circle, rgba(234, 88, 12, 0.15) 0%, rgba(0,0,0,0) 70%);
+        }
+        .glow-ice {
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, rgba(0,0,0,0) 70%);
+        }
+        /* High-Definition Smooth Transitions */
+        .glass-panel {
+            background: rgba(10, 11, 16, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
     </style>
 </head>
-<body class="text-white font-sans antialiased selection:bg-cyan-500/30 min-h-screen flex items-center justify-center relative overflow-x-hidden">
+<body class="text-white font-sans antialiased selection:bg-cyan-500/30 min-h-screen flex items-center justify-center relative overflow-x-hidden p-4 md:p-0">
 
-    <div class="absolute inset-0 brand-split-bg pointer-events-none" aria-hidden="true"></div>
+    <div class="absolute top-0 -left-20 w-[400px] h-[400px] glow-fire pointer-events-none select-none" aria-hidden="true"></div>
+    <div class="absolute bottom-0 -right-20 w-[400px] h-[400px] glow-ice pointer-events-none select-none" aria-hidden="true"></div>
 
-    <main class="relative z-10 w-full max-w-xl mx-auto px-6 py-12" role="main">
+    <main class="relative z-10 w-full max-w-xl mx-auto py-8 md:py-12" role="main">
         
         <header class="text-center mb-8 select-none">
             <h1 class="text-4xl md:text-5xl font-black tracking-tighter text-white uppercase">
-                FLASHY<span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-cyan-400">AF</span>™
+                FLASHY<span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-cyan-400 animate-pulse">AF</span>™
             </h1>
         </header>
 
-        <section class="backdrop-blur-md bg-black/75 border border-white/10 rounded-3xl p-8 md:p-12 shadow-2xl space-y-8" aria-labelledby="main-headline">
+        <section class="glass-panel border border-white/10 rounded-[32px] p-8 md:p-12 shadow-[0_0_50px_rgba(0,0,0,0.8)] relative overflow-hidden space-y-8">
+            
+            <div class="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent"></div>
             
             <div class="flex items-center justify-center gap-2 select-none">
-                <span class="relative flex h-2.5 w-2.5">
+                <span class="relative flex h-2 w-2">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-500"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
                 </span>
-                <p class="text-xs font-bold tracking-widest text-cyan-400 uppercase">SYSTEM ACTIVE // BETA PHASE</p>
+                <p class="text-[10px] font-black tracking-[0.25em] text-cyan-400 uppercase">SYSTEM ACTIVE // BETA PHASE 1.0</p>
             </div>
 
-            <div class="text-center space-y-6">
-                <h2 id="main-headline" class="text-5xl md:text-6xl font-black tracking-tighter leading-none text-white uppercase break-words">
+            <div class="text-center space-y-4">
+                <h2 id="main-headline" class="text-4xl md:text-5xl font-black tracking-tight leading-none text-white uppercase">
                     TAKE CONTROL BACK.
                 </h2>
                 
-                <div class="space-y-3">
-                    <p class="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-cyan-400 tracking-wide uppercase">
-                        HOT FLASHES JUST MET THEIR MATCH IN FLASHYAF.
+                <div class="space-y-2">
+                    <p class="text-lg md:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-orange-400 to-cyan-400 tracking-wide uppercase">
+                        HOT FLASHES JUST MET THEIR MATCH.
                     </p>
-                    <p class="text-lg font-bold text-white/90 tracking-wide">
-                        Support In Real-Time, when you need it most.
+                    <p class="text-sm font-bold text-white/80 tracking-wide">
+                        Support In Real-Time. Hands-Free Intervention.
                     </p>
                 </div>
 
-                <p class="text-base text-white/70 font-medium max-w-md mx-auto leading-relaxed">
-                    Understand your body better. Coming soon: FLASHYAF App. Join the community engineering a fierce, high-performance future for women. Help make a real difference first.
+                <p class="text-sm md:text-base text-white/60 font-medium max-w-md mx-auto leading-relaxed pt-2">
+                    Stop tracking the symptoms after the damage is done. FLASHYAF™ intercepts the lifecycle when you are in the fire. 
                 </p>
             </div>
 
-            <hr class="border-white/10 my-6" aria-hidden="true">
+            <div class="h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent my-2" aria-hidden="true"></div>
 
             <div class="space-y-6">
-                <div class="text-center space-y-3 select-none">
-                    <p class="text-lg font-black tracking-wide text-orange-500 uppercase">
+                <div class="text-center space-y-2 select-none bg-white/[0.02] border border-white/5 rounded-2xl p-4">
+                    <p class="text-base font-black tracking-wide text-orange-500 uppercase">
                         🚀 EARLY ACCESS DROP LIMITED TO 100 PIONEERS
                     </p>
-                    <p class="text-sm font-bold tracking-wide text-cyan-400 max-w-md mx-auto leading-snug">
+                    <p class="text-xs font-bold tracking-normal text-cyan-400/90 max-w-sm mx-auto">
                         ⚠️ Currently prioritizing the first 50 slots for Smartwatch & Wearable users.
                     </p>
                 </div>
@@ -77,14 +89,14 @@
                             name="email" 
                             required 
                             placeholder="Enter your email to claim access" 
-                            class="w-full px-5 py-4 bg-black border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-base font-semibold transition-all duration-200"
+                            class="w-full px-5 py-4 bg-black/50 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-base font-semibold transition-all duration-200 shadow-inner"
                             aria-required="true"
                         >
                     </div>
 
                     <button 
                         type="submit" 
-                        class="w-full py-4 px-6 bg-gradient-to-r from-orange-600 to-cyan-500 hover:from-orange-500 hover:to-cyan-400 text-black font-black text-base uppercase tracking-wider rounded-xl transition-all duration-300 transform active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-cyan-400 shadow-xl shadow-cyan-500/10 min-h-[48px]"
+                        class="w-full py-4 px-6 bg-gradient-to-r from-orange-600 to-cyan-500 hover:from-orange-500 hover:to-cyan-400 text-black font-black text-base uppercase tracking-wider rounded-xl transition-all duration-300 transform active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-cyan-400 shadow-[0_0_30px_rgba(6,182,212,0.2)] min-h-[48px]"
                     >
                         SECURE YOUR INVITE SLOT
                     </button>
@@ -94,8 +106,8 @@
         </section>
 
         <footer class="mt-8 text-center select-none">
-            <p class="text-xs font-bold tracking-widest text-white/20 uppercase">
-                Stealth Architecture // Tier 0.01 Data Lockdown Complete
+            <p class="text-[10px] font-bold tracking-[0.2em] text-white/20 uppercase">
+                Stealth Architecture // Tier 0.01 Data Moat Locked
             </p>
         </footer>
 
