@@ -1,188 +1,168 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FLASHYAF™ | Take Control Back</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://sibforms.com/forms/end-form/build/sib-styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FLASHYAF™ | From Flash to Freedom</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://sibforms.com/forms/end-form/build/sib-styles.css">
 
-    <style>
-        body {
-            background-color: #000000;
-        }
-
-        .vibrant-split-bg {
-            background: linear-gradient(135deg, #FF0000 0%, #FF5722 20%, #000000 50%, #0088FF 80%, #00A2FF 100%);
-            background-attachment: fixed;
-        }
-
-        :where(.sib-form-message-panel) {
-            display: none;
-        }
-
-        #sib-container input::placeholder {
-            color: rgba(255,255,255,0.45);
-        }
-
-        #sib-container .entry__field {
-            background: transparent !important;
-            border: 0 !important;
-            margin: 0 !important;
-        }
-
-        #sib-container input {
-            box-sizing: border-box;
-        }
-    </style>
+  <style>
+    body { background:#000; }
+    .fire-ice {
+      background:
+        radial-gradient(circle at 0% 20%, rgba(255,60,0,.45), transparent 35%),
+        radial-gradient(circle at 100% 35%, rgba(0,150,255,.45), transparent 38%),
+        linear-gradient(135deg,#050505 0%,#000 45%,#02131f 100%);
+    }
+    .glass { background:rgba(0,0,0,.72); backdrop-filter: blur(10px); }
+    :where(.sib-form-message-panel){ display:none; }
+    #sib-container .entry__field{ background:transparent!important; border:0!important; margin:0!important; }
+  </style>
 </head>
 
-<body class="text-white font-sans antialiased vibrant-split-bg min-h-screen flex items-center justify-center relative overflow-x-hidden p-4 md:p-0">
+<body class="text-white font-sans fire-ice min-h-screen">
 
-    <main class="relative z-10 w-full max-w-xl mx-auto py-8 md:py-12" role="main">
-        
-        <header class="text-center mb-8 select-none">
-            <h1 class="text-4xl md:text-5xl font-black tracking-tighter text-white uppercase drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
-                FLASHY<span class="text-transparent bg-clip-text bg-gradient-to-r from-[#FF5722] to-[#00A2FF]">AF</span>™
-            </h1>
-        </header>
+  <nav class="max-w-7xl mx-auto px-5 py-5 flex items-center justify-between">
+    <div class="text-2xl font-black tracking-wide">🔥 FLASHY<span class="text-red-500">AF</span>™</div>
+    <a href="#waitlist" class="px-5 py-2 rounded-full border border-cyan-400 text-sm font-bold hover:bg-cyan-400 hover:text-black">JOIN WAITLIST</a>
+  </nav>
 
-        <section class="bg-[#000000] border border-white/20 rounded-3xl p-8 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.9)] space-y-8" aria-labelledby="main-headline">
-            
-            <div class="flex items-center justify-center gap-2 select-none">
-                <span class="relative flex h-2.5 w-2.5">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-500"></span>
-                </span>
-                <p class="text-xs font-bold tracking-widest text-cyan-400 uppercase">SYSTEM ACTIVE // BETA PHASE</p>
+  <main>
+
+    <section class="max-w-7xl mx-auto px-5 py-8 grid md:grid-cols-2 gap-8 items-center">
+      <div>
+        <img src="founder.png" alt="Founder of FLASHYAF" class="rounded-3xl shadow-2xl border border-red-500/30 w-full max-w-md mx-auto">
+      </div>
+
+      <div class="text-center md:text-left space-y-6">
+        <img src="cover%20slide.png" alt="FLASHYAF brand image" class="rounded-2xl shadow-2xl border border-white/10">
+        <h1 class="text-5xl md:text-7xl font-black leading-none">
+          FROM <span class="text-red-500">FLASH</span><br>TO <span class="text-cyan-400">FREEDOM</span>.
+        </h1>
+        <p class="text-xl text-white/80">
+          Real-time General Wellness support for menopause-related transitions.
+        </p>
+        <a href="#waitlist" class="inline-block px-8 py-4 rounded-full bg-gradient-to-r from-red-600 to-cyan-400 text-black font-black">
+          JOIN THE WAITLIST
+        </a>
+      </div>
+    </section>
+
+    <section class="max-w-7xl mx-auto px-5 py-10">
+      <img src="hero-slide.png" alt="FLASHYAF overview" class="rounded-3xl shadow-2xl border border-white/10 w-full">
+    </section>
+
+    <section class="max-w-7xl mx-auto px-5 py-10 grid md:grid-cols-2 gap-8 items-center">
+      <div class="space-y-6">
+        <h2 class="text-4xl md:text-5xl font-black">REAL-TIME SUPPORT — <span class="text-cyan-400">DURING THE FLASH</span></h2>
+        <p class="text-white/75 text-lg">
+          FLASHYAF™ is being built as a voice-first General Wellness companion that supports coping, logging, and personal pattern awareness in the moment.
+        </p>
+        <ul class="space-y-4 text-white/85">
+          <li>⚡ Support during the flash, not after.</li>
+          <li>💙 Built from lived experience.</li>
+          <li>🔒 Privacy-first foundation.</li>
+          <li>🔥 Founder-led and purpose-driven.</li>
+        </ul>
+      </div>
+
+      <img src="app%20screenshot%20back%20to%20normal.png" alt="FLASHYAF app screenshot" class="rounded-3xl shadow-2xl border border-cyan-400/30 max-h-[720px] mx-auto">
+    </section>
+
+    <section class="max-w-7xl mx-auto px-5 py-10">
+      <img src="problem%20-slide.png" alt="Problem overview" class="rounded-3xl shadow-2xl border border-white/10 w-full">
+    </section>
+
+    <section class="max-w-7xl mx-auto px-5 py-14">
+      <div class="grid md:grid-cols-5 gap-4 text-center">
+        <div class="glass p-6 rounded-2xl border border-white/10"><div class="text-3xl font-black text-red-500">1B+</div><p class="text-sm text-white/70">Women in menopause-related transitions worldwide</p></div>
+        <div class="glass p-6 rounded-2xl border border-white/10"><div class="text-3xl font-black text-orange-400">Real-Time</div><p class="text-sm text-white/70">Support in the moment</p></div>
+        <div class="glass p-6 rounded-2xl border border-white/10"><div class="text-3xl font-black text-cyan-400">Private</div><p class="text-sm text-white/70">Your data, your control</p></div>
+        <div class="glass p-6 rounded-2xl border border-white/10"><div class="text-3xl font-black text-purple-400">Voice</div><p class="text-sm text-white/70">Designed for hands-free moments</p></div>
+        <div class="glass p-6 rounded-2xl border border-white/10"><div class="text-3xl font-black text-pink-400">Built</div><p class="text-sm text-white/70">By someone who lives the mission</p></div>
+      </div>
+    </section>
+
+    <section class="max-w-7xl mx-auto px-5 py-14 grid md:grid-cols-2 gap-8 items-center">
+      <img src="founder.png" alt="Iva Marie Brown-Ziegler" class="rounded-3xl shadow-2xl border border-red-500/30 max-w-md mx-auto">
+      <div class="glass p-8 rounded-3xl border border-white/10">
+        <p class="tracking-[.35em] text-white/50 uppercase">Meet the Founder</p>
+        <h2 class="text-4xl font-black text-red-400 mt-3">Iva Marie Brown-Ziegler</h2>
+        <p class="mt-5 text-white/80 leading-relaxed">
+          I built FLASHYAF™ because no one prepared me for this. No one showed up when I needed it most. Now, I’m building the support I wish I had — for every woman who deserves better.
+        </p>
+      </div>
+    </section>
+
+    <section id="waitlist" class="max-w-3xl mx-auto px-5 py-16 text-center">
+      <h2 class="text-4xl md:text-5xl font-black">BE PART OF THE <span class="text-cyan-400">MOVEMENT</span>.</h2>
+      <p class="text-white/70 mt-3">Join the waitlist for early updates and beta opportunities.</p>
+
+      <div class="mt-8 glass p-6 rounded-3xl border border-white/10">
+        <div class="sib-form" style="background-color:transparent; padding:0;">
+          <div id="sib-form-container" class="sib-form-container" style="padding:0;">
+            <div id="error-message" class="sib-form-message-panel" style="font-family:Helvetica,sans-serif;font-size:14px;text-align:center;color:#fff;background-color:#661d1d;border-radius:12px;max-width:540px;margin-bottom:12px;">
+              <div class="sib-form-message-panel__text sib-form-message-panel__text--center">
+                <span class="sib-form-message-panel__inner-text">Your signup could not be saved. Please try again.</span>
+              </div>
             </div>
 
-            <div class="text-center space-y-6">
-                <h2 id="main-headline" class="text-5xl md:text-6xl font-black tracking-tighter leading-none text-white uppercase break-words">
-                    TAKE CONTROL BACK.
-                </h2>
-                
-                <div class="space-y-3">
-                    <p class="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#FF0000] via-[#FF5722] to-[#00A2FF] tracking-wide uppercase">
-                        HOT FLASHES JUST MET THEIR MATCH IN FLASHYAF.
-                    </p>
-                    <p class="text-lg font-bold text-white/90 tracking-wide">
-                        Support in real-time, when you need it most.
-                    </p>
-                </div>
-
-                <p class="text-base text-white/70 font-medium max-w-md mx-auto leading-relaxed">
-                    Understand your body better. Coming soon: FLASHYAF™ App. Join the community helping build real-time General Wellness support for menopause-related transitions.
-                </p>
+            <div id="success-message" class="sib-form-message-panel" style="font-family:Helvetica,sans-serif;font-size:14px;text-align:center;color:#fff;background-color:#085229;border-radius:12px;max-width:540px;margin-bottom:12px;">
+              <div class="sib-form-message-panel__text sib-form-message-panel__text--center">
+                <span class="sib-form-message-panel__inner-text">You are on the FLASHYAF™ waitlist.</span>
+              </div>
             </div>
 
-            <hr class="border-white/10 my-6" aria-hidden="true">
-
-            <div class="space-y-4">
-                <p class="text-sm font-bold text-center tracking-wide text-cyan-400 uppercase select-none">
-                    🚀 EARLY ACCESS LIMITED TO THE FIRST 100 PIONEER TESTERS.
-                </p>
-
-                <div class="sib-form" style="background-color: transparent; padding: 0;">
-                    <div id="sib-form-container" class="sib-form-container" style="padding: 0;">
-                        
-                        <div id="error-message" class="sib-form-message-panel" style="font-family: Helvetica, sans-serif; font-size: 14px; text-align: center; color: #ffffff; background-color: #661d1d; border-color: #ff4949; border-radius: 12px; max-width: 540px; margin-bottom: 12px;">
-                            <div class="sib-form-message-panel__text sib-form-message-panel__text--center">
-                                <span class="sib-form-message-panel__inner-text">
-                                    Your signup could not be saved. Please try again.
-                                </span>
-                            </div>
-                        </div>
-
-                        <div id="success-message" class="sib-form-message-panel" style="font-family: Helvetica, sans-serif; font-size: 14px; text-align: center; color: #ffffff; background-color: #085229; border-color: #13ce66; border-radius: 12px; max-width: 540px; margin-bottom: 12px;">
-                            <div class="sib-form-message-panel__text sib-form-message-panel__text--center">
-                                <span class="sib-form-message-panel__inner-text">
-                                    You are on the FLASHYAF™ waitlist.
-                                </span>
-                            </div>
-                        </div>
-
-                        <div id="sib-container" class="sib-container--large sib-container--vertical" style="max-width: 540px; text-align: center; background-color: transparent; border-width: 0; padding: 0; direction: ltr;">
-                            
-                            <form id="sib-form" method="POST" action="https://443a6444.sibforms.com/serve/MUIFAMwKesSjBwp-AVCPj8YIUPi7KD1aplNf6MCHuJjUYUiSo4VD1x7V30OTLTMxuAtCx6lB1qFtGS9skY9XeWoMoIFqioW_CeSDKwsMEghUXsVQchcXutzMv8F7VodNQlxxKHQ_z0YIf7jbIRwYVV3uFXZxxU189_H3FmiMaQlF5azTdbq-m_ST_4_cPI4GAe0O1KGGFYUHgmiz6A==" data-type="subscription" class="space-y-4 max-w-md mx-auto">
-
-                                <div class="sib-input sib-form-block" style="padding: 0;">
-                                    <div class="form__entry entry_block">
-                                        <div class="form__label-row">
-                                            <label for="EMAIL" class="sr-only">Email Address</label>
-
-                                            <div class="entry__field">
-                                                <input 
-                                                    type="email"
-                                                    id="EMAIL"
-                                                    name="EMAIL"
-                                                    autocomplete="email"
-                                                    required
-                                                    data-required="true"
-                                                    placeholder="Enter your email to claim access"
-                                                    class="input w-full px-5 py-4 bg-[#111111] border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-base font-semibold transition-all duration-200"
-                                                >
-                                            </div>
-                                        </div>
-
-                                        <label class="entry__error entry__error--primary" style="font-family: Helvetica, sans-serif; font-size: 14px; text-align: left; color: #ffffff; background-color: #661d1d; border-color: #ff4949; border-radius: 8px;"></label>
-                                    </div>
-                                </div>
-
-                                <div class="sib-form-block" style="text-align: center; padding: 0;">
-                                    <button 
-                                        class="sib-form-block__button sib-form-block__button-with-loader w-full py-4 px-6 bg-gradient-to-r from-[#FF0000] via-[#FF5722] to-[#00A2FF] hover:from-[#FF5722] hover:to-[#00F2FE] text-black font-black text-base uppercase tracking-wider rounded-xl transition-all duration-300 transform active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-cyan-400 shadow-xl shadow-cyan-500/10 min-h-[48px]"
-                                        style="font-family: Helvetica, sans-serif; font-size: 16px; font-weight: 900; color: #000000; border-width: 0; border-radius: 12px;"
-                                        form="sib-form"
-                                        type="submit"
-                                    >
-                                        <svg class="icon clickable__icon progress-indicator__icon sib-hide-loader-icon" viewBox="0 0 512 512">
-                                            <path d="M460.116 373.846l-20.823-12.022c-5.541-3.199-7.54-10.159-4.663-15.874 30.137-59.886 28.343-131.652-5.386-189.946-33.641-58.394-94.896-95.833-161.827-99.676C261.028 55.961 256 50.751 256 44.352V20.309c0-6.904 5.808-12.337 12.703-11.982 83.556 4.306 160.163 50.864 202.11 123.677 42.063 72.696 44.079 162.316 6.031 236.832-3.14 6.148-10.75 8.461-16.728 5.01z" />
-                                        </svg>
-                                        Sign up to help make a difference
-                                    </button>
-                                </div>
-
-                                <input type="text" name="email_address_check" value="" class="input--hidden">
-                                <input type="hidden" name="locale" value="en">
-
-                            </form>
-                        </div>
+            <div id="sib-container" class="sib-container--large sib-container--vertical" style="max-width:540px;text-align:center;background-color:transparent;border-width:0;padding:0;direction:ltr;">
+              <form id="sib-form" method="POST" action="https://443a6444.sibforms.com/serve/MUIFAMwKesSjBwp-AVCPj8YIUPi7KD1aplNf6MCHuJjUYUiSo4VD1x7V30OTLTMxuAtCx6lB1qFtGS9skY9XeWoMoIFqioW_CeSDKwsMEghUXsVQchcXutzMv8F7VodNQlxxKHQ_z0YIf7jbIRwYVV3uFXZxxU189_H3FmiMaQlF5azTdbq-m_ST_4_cPI4GAe0O1KGGFYUHgmiz6A==" data-type="subscription" class="flex flex-col md:flex-row gap-3">
+                <div class="sib-input sib-form-block flex-1" style="padding:0;">
+                  <div class="form__entry entry_block">
+                    <div class="form__label-row">
+                      <label for="EMAIL" class="sr-only">Email Address</label>
+                      <div class="entry__field">
+                        <input type="email" id="EMAIL" name="EMAIL" autocomplete="email" required data-required="true" placeholder="Enter your email to join the waitlist" class="input w-full px-5 py-4 bg-[#111111] border border-white/20 rounded-full text-white placeholder-white/40 focus:outline-none focus:border-cyan-400">
+                      </div>
                     </div>
+                    <label class="entry__error entry__error--primary" style="font-size:13px;color:#fff;background-color:#661d1d;border-radius:8px;"></label>
+                  </div>
                 </div>
+
+                <button class="sib-form-block__button sib-form-block__button-with-loader px-8 py-4 rounded-full bg-gradient-to-r from-red-600 to-cyan-400 text-black font-black uppercase" form="sib-form" type="submit">
+                  Join the Waitlist
+                </button>
+
+                <input type="text" name="email_address_check" value="" class="input--hidden">
+                <input type="hidden" name="locale" value="en">
+              </form>
             </div>
+          </div>
+        </div>
+      </div>
 
-        </section>
+      <p class="text-xs text-white/45 mt-5">
+        FLASHYAF™ is a General Wellness support platform. It does not provide medical advice, diagnosis, or treatment.
+      </p>
+    </section>
 
-        <footer class="mt-8 text-center select-none">
-            <p class="text-xs font-bold tracking-widest text-white/20 uppercase">
-                FLASHYAF™ // General Wellness Support // Founder-Led Beta
-            </p>
-        </footer>
+  </main>
 
-    </main>
+  <footer class="border-t border-white/10 py-6 text-center text-xs text-white/40">
+    © 2026 FLASHYAF™. All rights reserved. General Wellness Support.
+  </footer>
 
-    <script>
-        window.REQUIRED_CODE_ERROR_MESSAGE = 'Please choose a country code';
-        window.LOCALE = 'en';
-        window.EMAIL_INVALID_MESSAGE = window.SMS_INVALID_MESSAGE = "The information provided is invalid. Please review the field format and try again.";
-        window.REQUIRED_ERROR_MESSAGE = "This field cannot be left blank.";
-        window.GENERIC_INVALID_MESSAGE = "The information provided is invalid. Please review the field format and try again.";
-        window.INVALID_NUMBER = "The information provided is invalid. Please review the field format and try again.";
-        window.INVALID_DATE = "Please enter a valid date";
-        window.REQUIRED_MULTISELECT_MESSAGE = 'Please select at least 1 option';
-        window.translation = {
-            common: {
-                selectedList: '{quantity} list selected',
-                selectedLists: '{quantity} lists selected',
-                selectedOption: '{quantity} selected',
-                selectedOptions: '{quantity} selected',
-            }
-        };
-        var AUTOHIDE = Boolean(0);
-    </script>
-
-    <script defer src="https://sibforms.com/forms/end-form/build/main.js"></script>
-
+  <script>
+    window.REQUIRED_CODE_ERROR_MESSAGE = 'Please choose a country code';
+    window.LOCALE = 'en';
+    window.EMAIL_INVALID_MESSAGE = window.SMS_INVALID_MESSAGE = "The information provided is invalid. Please review the field format and try again.";
+    window.REQUIRED_ERROR_MESSAGE = "This field cannot be left blank.";
+    window.GENERIC_INVALID_MESSAGE = "The information provided is invalid. Please review the field format and try again.";
+    window.INVALID_NUMBER = "The information provided is invalid. Please review the field format and try again.";
+    window.INVALID_DATE = "Please enter a valid date";
+    window.REQUIRED_MULTISELECT_MESSAGE = 'Please select at least 1 option';
+    window.translation = { common: { selectedList: '{quantity} list selected', selectedLists: '{quantity} lists selected', selectedOption: '{quantity} selected', selectedOptions: '{quantity} selected' } };
+    var AUTOHIDE = Boolean(0);
+  </script>
+  <script defer src="https://sibforms.com/forms/end-form/build/main.js"></script>
 </body>
 </html>
