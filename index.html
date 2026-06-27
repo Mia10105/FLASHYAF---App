@@ -1,166 +1,720 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FLASHYAF™ | Take Control Back</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://sibforms.com/forms/end-form/build/sib-styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FLASHYAF™ | From Flash To Freedom</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://sibforms.com/forms/end-form/build/sib-styles.css">
 
-    <style>
-        body {
-            background-color: #000000;
-        }
+<style>
+    :root {
+        --flame: #FF1A1A;
+        --flame-deep: #B30000;
+        --ice: #00A2FF;
+        --ice-deep: #0066CC;
+    }
 
-        .vibrant-split-bg {
-            background: linear-gradient(135deg, #FF0000 0%, #FF5722 20%, #000000 50%, #0088FF 80%, #00A2FF 100%);
-            background-attachment: fixed;
-        }
+    body {
+        background-color: #000000;
+        font-family: 'Inter', sans-serif;
+    }
 
-        :where(.sib-form-message-panel) {
-            display: none;
-        }
+    .bg-hero {
+        background: #050507;
+        position: relative;
+        overflow: hidden;
+    }
 
-        #sib-container input::placeholder {
-            color: rgba(255,255,255,0.45);
-        }
+    .bg-art {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        z-index: 0;
+        pointer-events: none;
+        opacity: 0.85;
+    }
 
-        #sib-container .entry__field {
-            background: transparent !important;
-            border: 0 !important;
-            margin: 0 !important;
-        }
+    .bg-art-left {
+        left: 0;
+        width: min(36vw, 480px);
+        object-fit: cover;
+        object-position: right center;
+        -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 55%, rgba(0,0,0,0) 100%);
+        mask-image: linear-gradient(to right, rgba(0,0,0,1) 55%, rgba(0,0,0,0) 100%);
+    }
 
-        #sib-container input {
-            box-sizing: border-box;
+    .bg-art-right {
+        right: 0;
+        width: min(30vw, 400px);
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0;
+    }
+
+    .bg-art-right img {
+        width: 100%;
+        object-fit: cover;
+        -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,1) 55%, rgba(0,0,0,0) 100%);
+        mask-image: linear-gradient(to left, rgba(0,0,0,1) 55%, rgba(0,0,0,0) 100%);
+    }
+
+    .bg-art-right img:first-child { height: 38%; }
+    .bg-art-right img:last-child { height: 62%; }
+
+    .bg-fade-top {
+        position: absolute;
+        top: 0; left: 0; right: 0; height: 140px;
+        background: linear-gradient(to bottom, #050507, transparent);
+        z-index: 1;
+        pointer-events: none;
+    }
+    .bg-fade-bottom {
+        position: absolute;
+        bottom: 0; left: 0; right: 0; height: 140px;
+        background: linear-gradient(to top, #050507, transparent);
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .nav-link {
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        color: rgba(255,255,255,0.78);
+        transition: color 0.15s ease;
+        white-space: nowrap;
+    }
+    .nav-link:hover, .nav-link.active { color: #ffffff; }
+    .nav-link.active { color: #38bdf8; }
+
+    .mobile-menu-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 9999px;
+        padding: 0.55rem 0.8rem;
+        font-weight: 900;
+        color: #fff;
+        background: rgba(255,255,255,0.04);
+    }
+
+    .mobile-menu {
+        display: none;
+        border-top: 1px solid rgba(255,255,255,0.10);
+        background: rgba(0,0,0,0.96);
+    }
+
+    .mobile-menu.open {
+        display: block;
+    }
+
+    .mobile-menu a {
+        display: block;
+        padding: 0.85rem 1.25rem;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        font-weight: 800;
+        font-size: 0.82rem;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.82);
+    }
+
+    .mobile-menu a:hover {
+        color: #fff;
+        background: rgba(255,255,255,0.04);
+    }
+
+    .btn-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        border-radius: 9999px;
+        padding: 0.9rem 2.25rem;
+        font-size: 0.95rem;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+        text-transform: uppercase;
+    }
+    .btn-pill:hover { transform: translateY(-1px); filter: brightness(1.08); }
+    .btn-pill:active { transform: translateY(0); }
+
+    .btn-flame {
+        background: linear-gradient(180deg, var(--flame) 0%, var(--flame-deep) 100%);
+        color: #fff;
+        box-shadow: 0 8px 24px -6px rgba(255,26,26,0.55);
+    }
+    .btn-ice {
+        background: linear-gradient(180deg, var(--ice) 0%, var(--ice-deep) 100%);
+        color: #fff;
+        box-shadow: 0 8px 24px -6px rgba(0,162,255,0.55);
+    }
+    .btn-outline-flame {
+        border: 2px solid var(--flame);
+        color: #fff;
+        background: transparent;
+        padding: 0.55rem 1.5rem;
+        font-size: 0.78rem;
+    }
+    .btn-outline-flame:hover { background: rgba(255,26,26,0.12); }
+
+    .feature-row { display: flex; gap: 0.9rem; align-items: flex-start; }
+    .feature-icon {
+        flex: 0 0 44px; height: 44px; width: 44px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.15rem;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .gradient-text {
+        background: linear-gradient(90deg, var(--flame) 0%, #fff 50%, var(--ice) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .pioneer-card {
+        background: rgba(15,15,18,0.85);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 20px;
+        backdrop-filter: blur(6px);
+    }
+
+    .phone-shadow {
+        filter: drop-shadow(0 30px 60px rgba(0,0,0,0.7));
+    }
+
+    :where(.sib-form-message-panel) { display: none; }
+    #sib-container input::placeholder { color: rgba(255,255,255,0.45); }
+    #sib-container .entry__field { background: transparent !important; border: 0 !important; margin: 0 !important; }
+    #sib-container input { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    @media (max-width: 420px) {
+        .btn-pill {
+            width: 100%;
+            padding-left: 1.25rem;
+            padding-right: 1.25rem;
         }
-    </style>
+    }
+</style>
 </head>
 
-<body class="text-white font-sans antialiased vibrant-split-bg min-h-screen flex items-center justify-center relative overflow-x-hidden p-4 md:p-0">
+<body class="text-white antialiased">
 
-    <main class="relative z-10 w-full max-w-xl mx-auto py-8 md:py-12" role="main">
-        
-        <header class="text-center mb-8 select-none">
-            <h1 class="text-4xl md:text-5xl font-black tracking-tighter text-white uppercase drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
-                FLASHY<span class="text-transparent bg-clip-text bg-gradient-to-r from-[#FF5722] to-[#00A2FF]">AF</span>™
-            </h1>
-        </header>
-
-        <section class="bg-[#000000] border border-white/20 rounded-3xl p-8 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.9)] space-y-8" aria-labelledby="main-headline">
-            
-            <div class="flex items-center justify-center gap-2 select-none">
-                <span class="relative flex h-2.5 w-2.5">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-500"></span>
+    <!-- ============ NAV ============ -->
+    <header class="sticky top-0 z-50 bg-black/90 backdrop-blur border-b border-white/10">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-3 px-5 py-3">
+            <a href="#home" class="flex items-center gap-2 shrink-0 select-none">
+                <span class="text-xl">🔥</span>
+                <span class="text-xl font-black tracking-tight uppercase">
+                    FLASHY<span class="text-transparent bg-clip-text bg-gradient-to-r from-[var(--flame)] to-[var(--ice)]">AF</span>
                 </span>
-                <p class="text-xs font-bold tracking-widest text-cyan-400 uppercase">SYSTEM ACTIVE // BETA PHASE</p>
+                <span class="text-[0.6rem] align-top font-bold">™</span>
+            </a>
+
+            <nav class="hidden lg:flex items-center gap-7" aria-label="Primary">
+                <a href="#home" class="nav-link active">HOME</a>
+                <a href="#beta-tester" class="nav-link">BECOME A BETA TESTER</a>
+                <a href="#problem" class="nav-link">THE PROBLEM</a>
+                <a href="#solution" class="nav-link">SOLUTION</a>
+                <a href="#founder" class="nav-link">FOUNDER</a>
+                <a href="#roadmap" class="nav-link">ROADMAP</a>
+                <a href="#faq" class="nav-link">FAQ</a>
+                <a href="#pricing" class="nav-link">PRICING</a>
+                <a href="#privacy" class="nav-link">PRIVACY POLICY</a>
+            </nav>
+
+            <div class="flex items-center gap-2 shrink-0">
+                <a href="#waitlist" class="btn-outline-flame rounded-full font-extrabold uppercase tracking-wide hidden sm:inline-flex">
+                    Join Waitlist
+                </a>
+                <button id="mobile-menu-button" class="mobile-menu-button lg:hidden" type="button" aria-controls="mobile-menu" aria-expanded="false">
+                    Menu
+                </button>
+            </div>
+        </div>
+
+        <nav id="mobile-menu" class="mobile-menu lg:hidden" aria-label="Mobile primary">
+            <a href="#home">Home</a>
+            <a href="#waitlist">Join Waitlist</a>
+            <a href="#beta-tester">Become A Beta Tester</a>
+            <a href="#problem">The Problem</a>
+            <a href="#solution">Solution</a>
+            <a href="#founder">Founder</a>
+            <a href="#roadmap">Roadmap</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#faq">FAQ</a>
+            <a href="#privacy">Privacy Policy</a>
+        </nav>
+    </header>
+
+    <!-- ============ HERO ============ -->
+    <section id="home" class="bg-hero relative">
+        <img src="bg-left-fire.png" alt="" class="bg-art bg-art-left" aria-hidden="true">
+        <div class="bg-art bg-art-right" aria-hidden="true">
+            <img src="bg-right-snowflake.png" alt="">
+            <img src="bg-right-swirl.png" alt="">
+        </div>
+        <div class="bg-fade-top"></div>
+        <div class="bg-fade-bottom"></div>
+        <div class="max-w-7xl mx-auto px-5 pt-12 pb-16 relative z-10">
+
+            <div class="flex flex-wrap justify-center gap-4 mb-14">
+                <a href="#waitlist" class="btn-pill btn-flame">Join Waitlist</a>
+                <a href="#beta-tester" class="btn-pill btn-ice">Become A Beta Tester</a>
             </div>
 
-            <div class="text-center space-y-6">
-                <h2 id="main-headline" class="text-5xl md:text-6xl font-black tracking-tighter leading-none text-white uppercase break-words">
-                    TAKE CONTROL BACK.
-                </h2>
-                
-                <div class="space-y-3">
-                    <p class="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#FF0000] via-[#FF5722] to-[#00A2FF] tracking-wide uppercase">
-                        HOT FLASHES JUST MET THEIR MATCH IN FLASHYAF.
-                    </p>
-                    <p class="text-lg font-bold text-white/90 tracking-wide">
-                        Support in real-time, when you need it most.
-                    </p>
-                </div>
+            <div class="grid lg:grid-cols-[1fr_auto_1fr] gap-10 items-start">
 
-                <p class="text-base text-white/70 font-medium max-w-md mx-auto leading-relaxed">
-                    Understand your body better. Coming soon: FLASHYAF™ App. Join the community helping build real-time General Wellness support for menopause-related transitions.
-                </p>
-            </div>
+                <div class="space-y-8">
+                    <div>
+                        <h1 class="text-5xl md:text-6xl font-black uppercase leading-[1.02] tracking-tight">
+                            From<br>
+                            <span class="text-[var(--flame)]">Flash</span><br>
+                            To<br>
+                            <span class="text-[var(--ice)]">Freedom.</span>
+                        </h1>
+                        <p class="mt-5 text-white/80 text-lg max-w-sm">
+                            Real-time General Wellness support for menopause-related transitions.
+                        </p>
+                    </div>
 
-            <hr class="border-white/10 my-6" aria-hidden="true">
-
-            <div class="space-y-4">
-                <p class="text-sm font-bold text-center tracking-wide text-cyan-400 uppercase select-none">
-                    🚀 EARLY ACCESS LIMITED TO THE FIRST 100 PIONEER TESTERS.
-                </p>
-
-                <div class="sib-form" style="background-color: transparent; padding: 0;">
-                    <div id="sib-form-container" class="sib-form-container" style="padding: 0;">
-                        
-                        <div id="error-message" class="sib-form-message-panel" style="font-family: Helvetica, sans-serif; font-size: 14px; text-align: center; color: #ffffff; background-color: #661d1d; border-color: #ff4949; border-radius: 12px; max-width: 540px; margin-bottom: 12px;">
-                            <div class="sib-form-message-panel__text sib-form-message-panel__text--center">
-                                <span class="sib-form-message-panel__inner-text">
-                                    Your signup could not be saved. Please try again.
-                                </span>
+                    <div class="border border-white/10 rounded-2xl p-5 space-y-5 bg-white/[0.02] max-w-sm">
+                        <div class="feature-row">
+                            <div class="feature-icon">👥</div>
+                            <div>
+                                <p class="font-extrabold">1B+</p>
+                                <p class="text-sm text-white/65">Women navigating menopause-related transitions worldwide</p>
                             </div>
                         </div>
-
-                        <div id="success-message" class="sib-form-message-panel" style="font-family: Helvetica, sans-serif; font-size: 14px; text-align: center; color: #ffffff; background-color: #085229; border-color: #13ce66; border-radius: 12px; max-width: 540px; margin-bottom: 12px;">
-                            <div class="sib-form-message-panel__text sib-form-message-panel__text--center">
-                                <span class="sib-form-message-panel__inner-text">
-                                    You are on the FLASHYAF™ waitlist.
-                                </span>
+                        <div class="feature-row">
+                            <div class="feature-icon">⏱️</div>
+                            <div>
+                                <p class="font-extrabold">Real-Time</p>
+                                <p class="text-sm text-white/65">Support in the moment</p>
                             </div>
                         </div>
-
-                        <div id="sib-container" class="sib-container--large sib-container--vertical" style="max-width: 540px; text-align: center; background-color: transparent; border-width: 0; padding: 0; direction: ltr;">
-                            
-                            <form id="sib-form" method="POST" action="https://443a6444.sibforms.com/serve/MUIFAMwKesSjBwp-AVCPj8YIUPi7KD1aplNf6MCHuJjUYUiSo4VD1x7V30OTLTMxuAtCx6lB1qFtGS9skY9XeWoMoIFqioW_CeSDKwsMEghUXsVQchcXutzMv8F7VodNQlxxKHQ_z0YIf7jbIRwYVV3uFXZxxU189_H3FmiMaQlF5azTdbq-m_ST_4_cPI4GAe0O1KGGFYUHgmiz6A==" data-type="subscription" class="space-y-4 max-w-md mx-auto">
-
-                                <div class="sib-input sib-form-block" style="padding: 0;">
-                                    <div class="form__entry entry_block">
-                                        <div class="form__label-row">
-                                            <label for="EMAIL" class="sr-only">Email Address</label>
-
-                                            <div class="entry__field">
-                                                <input 
-                                                    type="email"
-                                                    id="EMAIL"
-                                                    name="EMAIL"
-                                                    autocomplete="email"
-                                                    required
-                                                    data-required="true"
-                                                    placeholder="Enter your email to claim access"
-                                                    class="input w-full px-5 py-4 bg-[#111111] border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-base font-semibold transition-all duration-200"
-                                                >
-                                            </div>
-                                        </div>
-
-                                        <label class="entry__error entry__error--primary" style="font-family: Helvetica, sans-serif; font-size: 14px; text-align: left; color: #ffffff; background-color: #661d1d; border-color: #ff4949; border-radius: 8px;"></label>
-                                    </div>
-                                </div>
-
-                                <div class="sib-form-block" style="text-align: center; padding: 0;">
-                                    <button 
-                                        class="sib-form-block__button sib-form-block__button-with-loader w-full py-4 px-6 bg-gradient-to-r from-[#FF0000] via-[#FF5722] to-[#00A2FF] hover:from-[#FF5722] hover:to-[#00F2FE] text-black font-black text-base uppercase tracking-wider rounded-xl transition-all duration-300 transform active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-cyan-400 shadow-xl shadow-cyan-500/10 min-h-[48px]"
-                                        style="font-family: Helvetica, sans-serif; font-size: 16px; font-weight: 900; color: #000000; border-width: 0; border-radius: 12px;"
-                                        form="sib-form"
-                                        type="submit"
-                                    >
-                                        <svg class="icon clickable__icon progress-indicator__icon sib-hide-loader-icon" viewBox="0 0 512 512">
-                                            <path d="M460.116 373.846l-20.823-12.022c-5.541-3.199-7.54-10.159-4.663-15.874 30.137-59.886 28.343-131.652-5.386-189.946-33.641-58.394-94.896-95.833-161.827-99.676C261.028 55.961 256 50.751 256 44.352V20.309c0-6.904 5.808-12.337 12.703-11.982 83.556 4.306 160.163 50.864 202.11 123.677 42.063 72.696 44.079 162.316 6.031 236.832-3.14 6.148-10.75 8.461-16.728 5.01z" />
-                                        </svg>
-                                        Sign up to help make a difference
-                                    </button>
-                                </div>
-
-                                <input type="text" name="email_address_check" value="" class="input--hidden">
-                                <input type="hidden" name="locale" value="en">
-
-                            </form>
+                        <div class="feature-row">
+                            <div class="feature-icon">🛡️</div>
+                            <div>
+                                <p class="font-extrabold">Privacy-Minded</p>
+                                <p class="text-sm text-white/65">Built around user control and consent</p>
+                            </div>
+                        </div>
+                        <div class="feature-row">
+                            <div class="feature-icon">🎙️</div>
+                            <div>
+                                <p class="font-extrabold">Voice</p>
+                                <p class="text-sm text-white/65">Designed for hands-free moments</p>
+                            </div>
+                        </div>
+                        <div class="feature-row">
+                            <div class="feature-icon">❤️</div>
+                            <div>
+                                <p class="font-extrabold">Built</p>
+                                <p class="text-sm text-white/65">By someone who lives the mission</p>
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                <div class="flex justify-center">
+                    <img src="phone-mockup.png" alt="FLASHYAF app screen showing a completed flash session with timestamped history and Emergency Cool Down support" class="phone-shadow w-[280px] md:w-[320px] rounded-[2.5rem]">
+                </div>
+
+                <div class="space-y-6">
+                    <div class="relative rounded-2xl overflow-hidden border border-white/10 max-w-sm mx-auto lg:mx-0">
+                        <img src="founder-photo.png" alt="Iva Marie Brown-Ziegler, Founder & CEO of FLASHYAF™, wearing an &quot;I AM FLASHYAF&quot; tank top" class="w-full h-auto object-cover">
+                    </div>
+
+                    <div class="pioneer-card p-6 max-w-sm mx-auto lg:mx-0">
+                        <p class="text-[var(--flame)] font-black uppercase tracking-wide text-sm mb-1">Pioneer Beta Program</p>
+                        <div class="h-0.5 w-10 bg-[var(--flame)] mb-4"></div>
+                        <p class="text-white/90 mb-5 leading-relaxed">
+                            Be one of the first 100 Pioneers to help build the
+                            <span class="font-bold">FLASHYAF™</span> community.
+                        </p>
+                        <ul class="space-y-3 text-sm">
+                            <li class="flex items-center gap-3"><span>🎙️</span> Voice-first AI support</li>
+                            <li class="flex items-center gap-3"><span>🛡️</span> Privacy-minded by design</li>
+                            <li class="flex items-center gap-3"><span>📈</span> Historical pattern display only</li>
+                            <li class="flex items-center gap-3"><span>🙂</span> Support that meets you in the moment</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="relative z-10 border-t border-white/10 py-6 text-center">
+            <p class="text-sm md:text-base font-extrabold uppercase tracking-wide">
+                <span class="text-[var(--flame)]">🔥 Hot flashes are real.</span>
+                <span class="text-white/90 mx-1">So is the support you deserve.</span>
+                <span class="text-[var(--ice)]">❄</span>
+            </p>
+        </div>
+    </section>
+
+    <!-- ============ THE PROBLEM ============ -->
+    <section id="problem" class="bg-black border-t border-white/10 py-20">
+        <div class="max-w-4xl mx-auto px-5">
+            <p class="text-xs font-bold tracking-widest text-[var(--flame)] uppercase mb-3 text-center">The Problem</p>
+            <h2 class="text-3xl md:text-4xl font-black uppercase mb-8 text-center">Menopause Doesn't Wait.<br class="hidden md:block"> The Support Isn't There Yet.</h2>
+
+            <div class="grid sm:grid-cols-3 gap-4 mb-10">
+                <div class="border border-white/10 rounded-xl p-5 text-center">
+                    <p class="text-3xl font-black text-[var(--flame)]">1B+</p>
+                    <p class="text-sm text-white/65 mt-1">Women worldwide are in menopause-related transitions or postmenopause.</p>
+                    <p class="text-[0.65rem] text-white/35 mt-2">Source: global menopause population estimates.</p>
+                </div>
+                <div class="border border-white/10 rounded-xl p-5 text-center">
+                    <p class="text-3xl font-black text-[var(--flame)]">Up to 80%</p>
+                    <p class="text-sm text-white/65 mt-1">May experience hot flashes or night sweats during menopause-related transitions.</p>
+                    <p class="text-[0.65rem] text-white/35 mt-2">Source: menopause vasomotor symptom literature.</p>
+                </div>
+                <div class="border border-white/10 rounded-xl p-5 text-center">
+                    <p class="text-3xl font-black text-[var(--ice)]">In the Moment</p>
+                    <p class="text-sm text-white/65 mt-1">Support is needed while symptoms are happening, not only after they are logged.</p>
+                    <p class="text-[0.65rem] text-white/35 mt-2">General wellness support only.</p>
+                </div>
             </div>
 
-        </section>
-
-        <footer class="mt-8 text-center select-none">
-            <p class="text-xs font-bold tracking-widest text-white/20 uppercase">
-                FLASHYAF™ // General Wellness Support // Founder-Led Beta
+            <p class="text-white/75 leading-relaxed mb-4">
+                Current solutions often lean toward after-the-fact logging or static education. FLASHYAF™ is built for the moment a user wants support during a hot flash episode.
             </p>
-        </footer>
+            <p class="text-white/75 leading-relaxed">
+                The founder's own logged experience showed a personal pattern between episodes — founder-specific data only, not a universal claim. That lived experience inspired a tool that helps each user view her own past logged patterns, without forecasting, countdowns, diagnosis, or treatment claims.
+            </p>
+        </div>
+    </section>
 
-    </main>
+    <!-- ============ SOLUTION ============ -->
+    <section id="solution" class="bg-black border-t border-white/10 py-20">
+        <div class="max-w-5xl mx-auto px-5">
+            <p class="text-xs font-bold tracking-widest text-[var(--ice)] uppercase mb-3 text-center">The Solution</p>
+            <h2 class="text-3xl md:text-4xl font-black uppercase mb-6 text-center">Real-Time Support, Stage By Stage.</h2>
+            <p class="text-white/75 leading-relaxed max-w-2xl mx-auto text-center mb-12">
+                FLASHYAF™ follows a simple logged stage flow — Start, Peak, End, and Back to Normal — offering hands-free behavioral coping support when a user chooses to activate it.
+            </p>
+
+            <div class="grid md:grid-cols-4 gap-4 mb-14">
+                <div class="border border-white/10 rounded-xl p-5">
+                    <p class="text-[var(--flame)] font-extrabold mb-1">Stage 1 — Start</p>
+                    <p class="text-sm text-white/65">The episode begins. Support activates by voice or tap.</p>
+                </div>
+                <div class="border border-white/10 rounded-xl p-5">
+                    <p class="text-[var(--flame)] font-extrabold mb-1">Stage 2 — Peak</p>
+                    <p class="text-sm text-white/65">The user can access in-the-moment coping support.</p>
+                </div>
+                <div class="border border-white/10 rounded-xl p-5">
+                    <p class="text-[var(--ice)] font-extrabold mb-1">Stage 3 — End</p>
+                    <p class="text-sm text-white/65">The episode is logged as complete.</p>
+                </div>
+                <div class="border border-white/10 rounded-xl p-5">
+                    <p class="text-[var(--ice)] font-extrabold mb-1">Stage 4 — Back To Normal</p>
+                    <p class="text-sm text-white/65">The user can reset, breathe, and return to the moment.</p>
+                </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="feature-row"><div class="feature-icon">🎙️</div><div><p class="font-extrabold">Hands-Free</p><p class="text-sm text-white/65">Voice or tap — your choice, every time.</p></div></div>
+                <div class="feature-row"><div class="feature-icon">🗒️</div><div><p class="font-extrabold">Memory Vault™</p><p class="text-sm text-white/65">Voice notes are designed to remain local to your device unless you choose to share or submit them.</p></div></div>
+                <div class="feature-row"><div class="feature-icon">📊</div><div><p class="font-extrabold">Flash History Insight™</p><p class="text-sm text-white/65">Your own past logged intervals and averages. Historical only — no countdowns.</p></div></div>
+                <div class="feature-row"><div class="feature-icon">🔒</div><div><p class="font-extrabold">Mic Privacy Lock™</p><p class="text-sm text-white/65">Designed for user-activated microphone use with a short timeout window.</p></div></div>
+            </div>
+
+            <p class="text-xs text-white/40 text-center mt-10 max-w-2xl mx-auto">
+                FLASHYAF™ is a General Wellness support platform. It does not provide medical advice, diagnosis, or treatment, and does not forecast, count down to, or claim to prevent future episodes.
+            </p>
+        </div>
+    </section>
+
+    <!-- ============ FOUNDER ============ -->
+    <section id="founder" class="bg-black border-t border-white/10 py-20">
+        <div class="max-w-3xl mx-auto px-5 text-center">
+            <p class="text-xs font-bold tracking-widest text-[var(--flame)] uppercase mb-3">Founder</p>
+            <h2 class="text-3xl md:text-4xl font-black uppercase mb-8">Meet The Founder</h2>
+
+            <blockquote class="text-xl md:text-2xl font-medium italic text-white/90 leading-relaxed mb-6">
+                "I wasn't looking for help with my period. I was looking for help with menopause-related transitions. What I couldn't find was real-time support. So I decided to build it myself."
+            </blockquote>
+            <p class="font-extrabold mb-10">— Iva Marie Brown-Ziegler, Founder &amp; CEO, FLASHYAF™</p>
+
+            <p class="text-white/75 leading-relaxed text-left">
+                Iva Marie Brown-Ziegler founded BROWNWORKS4U2™ LLC and built FLASHYAF™ from the ground up — product design, brand, system architecture, and day-to-day operations — driven by a gap in real-time menopause support that she experienced firsthand and could not find solved anywhere on the market. As a Black woman founder building in women's health, she brings both lived experience and hands-on execution to a category that has been chronically underserved and under-built for the women living through it.
+            </p>
+        </div>
+    </section>
+
+    <!-- ============ ROADMAP ============ -->
+    <section id="roadmap" class="bg-black border-t border-white/10 py-20">
+        <div class="max-w-4xl mx-auto px-5">
+            <p class="text-xs font-bold tracking-widest text-[var(--ice)] uppercase mb-3 text-center">Roadmap</p>
+            <h2 class="text-3xl md:text-4xl font-black uppercase mb-12 text-center">Where We're Headed</h2>
+
+            <div class="space-y-4">
+                <div class="flex gap-4 border border-white/10 rounded-xl p-5">
+                    <div class="font-black text-[var(--flame)] w-12 shrink-0">01</div>
+                    <div><p class="font-extrabold">IP Lockdown &amp; Infrastructure</p><p class="text-sm text-white/65">Now through Q3 2026</p></div>
+                </div>
+                <div class="flex gap-4 border border-white/10 rounded-xl p-5">
+                    <div class="font-black text-[var(--flame)] w-12 shrink-0">02</div>
+                    <div><p class="font-extrabold">Grant Submissions</p><p class="text-sm text-white/65">Now through Q3 2026</p></div>
+                </div>
+                <div class="flex gap-4 border border-white/10 rounded-xl p-5">
+                    <div class="font-black text-orange-300 w-12 shrink-0">03</div>
+                    <div><p class="font-extrabold">Pioneer Beta Launch</p><p class="text-sm text-white/65">Q3 – Q4 2026 · First 100 Pioneer Members</p></div>
+                </div>
+                <div class="flex gap-4 border border-white/10 rounded-xl p-5">
+                    <div class="font-black text-[var(--ice)] w-12 shrink-0">04</div>
+                    <div><p class="font-extrabold">Public Launch</p><p class="text-sm text-white/65">Q4 2026 – Q1 2027</p></div>
+                </div>
+                <div class="flex gap-4 border border-white/10 rounded-xl p-5">
+                    <div class="font-black text-[var(--ice)] w-12 shrink-0">05</div>
+                    <div><p class="font-extrabold">Break-Even &amp; Scale</p><p class="text-sm text-white/65">Q2 – Q4 2027</p></div>
+                </div>
+                <div class="flex gap-4 border border-white/10 rounded-xl p-5">
+                    <div class="font-black text-white w-12 shrink-0">06</div>
+                    <div><p class="font-extrabold">Ongoing Operations</p><p class="text-sm text-white/65">Continuous community &amp; product growth</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ PRICING ============ -->
+    <section id="pricing" class="bg-black border-t border-white/10 py-20">
+        <div class="max-w-5xl mx-auto px-5">
+            <p class="text-xs font-bold tracking-widest text-[var(--flame)] uppercase mb-3 text-center">Pricing</p>
+            <h2 class="text-3xl md:text-4xl font-black uppercase mb-4 text-center">Simple Tiers. No Surprises.</h2>
+            <p class="text-white/65 text-center mb-12">GROW is always the lower-priced tier. FLOW is always the premium tier.</p>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="border border-white/10 rounded-2xl p-7">
+                    <p class="font-black uppercase text-lg mb-1">MODE</p>
+                    <p class="text-3xl font-black mb-4">Free</p>
+                    <ul class="text-sm text-white/70 space-y-2">
+                        <li>✓ Real-time flash support</li>
+                        <li>✓ Memory Vault™ voice notes</li>
+                        <li>✓ CBT-informed support</li>
+                        <li>✓ Flash History — 30 days</li>
+                    </ul>
+                </div>
+                <div class="border-2 border-[var(--flame)] rounded-2xl p-7 relative">
+                    <p class="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--flame)] text-xs font-extrabold uppercase px-3 py-1 rounded-full">Pioneer Favorite</p>
+                    <p class="font-black uppercase text-lg mb-1">GROW</p>
+                    <p class="text-3xl font-black mb-1">$19.99<span class="text-base font-medium text-white/60">/mo</span></p>
+                    <p class="text-xs text-[var(--flame)] font-bold mb-4">Pioneer rate: $9.99/mo for 24 months</p>
+                    <ul class="text-sm text-white/70 space-y-2">
+                        <li>✓ Everything in MODE</li>
+                        <li>✓ 5 AI companion sessions/day</li>
+                        <li>✓ Flash History — 90 days</li>
+                    </ul>
+                </div>
+                <div class="border border-white/10 rounded-2xl p-7">
+                    <p class="font-black uppercase text-lg mb-1">FLOW</p>
+                    <p class="text-3xl font-black mb-1">$29.99<span class="text-base font-medium text-white/60">/mo</span></p>
+                    <p class="text-xs text-[var(--ice)] font-bold mb-4">Pioneer rate: $19.99/mo for 24 months</p>
+                    <ul class="text-sm text-white/70 space-y-2">
+                        <li>✓ Everything in GROW</li>
+                        <li>✓ Unlimited AI companion sessions</li>
+                        <li>✓ Unlimited Flash History</li>
+                        <li>✓ Partner Mode (SMS alerts)</li>
+                        <li>✓ Priority support</li>
+                    </ul>
+                </div>
+            </div>
+            <p class="text-xs text-white/40 text-center mt-8">
+                Pioneer pricing is locked for 24 calendar months from public launch — not a lifetime rate.
+            </p>
+        </div>
+    </section>
+
+    <!-- ============ FAQ ============ -->
+    <section id="faq" class="bg-black border-t border-white/10 py-20">
+        <div class="max-w-2xl mx-auto px-5">
+            <p class="text-xs font-bold tracking-widest text-[var(--ice)] uppercase mb-3 text-center">FAQ</p>
+            <h2 class="text-3xl md:text-4xl font-black uppercase mb-12 text-center">Questions, Answered.</h2>
+
+            <div class="space-y-3">
+                <details class="border border-white/10 rounded-xl p-5 group">
+                    <summary class="font-extrabold cursor-pointer list-none flex justify-between items-center">Is FLASHYAF™ a medical device?<span class="text-white/40 group-open:rotate-45 transition-transform">+</span></summary>
+                    <p class="text-sm text-white/65 mt-3">No. FLASHYAF™ is a General Wellness support platform. It does not diagnose, treat, or provide medical advice. Always consult a qualified healthcare provider for medical concerns.</p>
+                </details>
+                <details class="border border-white/10 rounded-xl p-5 group">
+                    <summary class="font-extrabold cursor-pointer list-none flex justify-between items-center">Does it tell me when my next hot flash will happen?<span class="text-white/40 group-open:rotate-45 transition-transform">+</span></summary>
+                    <p class="text-sm text-white/65 mt-3">No. Flash History Insight™ shows historical patterns from your own logged data only — past intervals and averages. It does not forecast, count down to, or claim to prevent future episodes.</p>
+                </details>
+                <details class="border border-white/10 rounded-xl p-5 group">
+                    <summary class="font-extrabold cursor-pointer list-none flex justify-between items-center">What's the Pioneer Beta Program?<span class="text-white/40 group-open:rotate-45 transition-transform">+</span></summary>
+                    <p class="text-sm text-white/65 mt-3">A limited program for the first 100 members to help shape FLASHYAF™ before public launch, with a Pioneer rate for 24 months from public launch.</p>
+                </details>
+                <details class="border border-white/10 rounded-xl p-5 group">
+                    <summary class="font-extrabold cursor-pointer list-none flex justify-between items-center">Is my data private?<span class="text-white/40 group-open:rotate-45 transition-transform">+</span></summary>
+                    <p class="text-sm text-white/65 mt-3">FLASHYAF™ is designed around user control and consent. We do not use health-screen activity for advertising, and voice notes are designed to remain local to your device unless you choose to share or submit them.</p>
+                </details>
+                <details class="border border-white/10 rounded-xl p-5 group">
+                    <summary class="font-extrabold cursor-pointer list-none flex justify-between items-center">When does FLASHYAF™ launch?<span class="text-white/40 group-open:rotate-45 transition-transform">+</span></summary>
+                    <p class="text-sm text-white/65 mt-3">Pioneer Beta opens to the first 100 members in Q3–Q4 2026, ahead of public launch. Join the waitlist to be notified the moment access opens.</p>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ PRIVACY POLICY ============ -->
+    <section id="privacy" class="bg-black border-t border-white/10 py-20">
+        <div class="max-w-3xl mx-auto px-5">
+            <p class="text-xs font-bold tracking-widest text-[var(--flame)] uppercase mb-3 text-center">Privacy Policy</p>
+            <h2 class="text-3xl md:text-4xl font-black uppercase mb-10 text-center">Your Data, Your Control.</h2>
+
+            <div class="space-y-8 text-white/75 leading-relaxed">
+                <div>
+                    <p class="font-extrabold text-white mb-1">Who we are</p>
+                    <p class="text-sm">BROWNWORKS4U2™ LLC operates FLASHYAF™, a voice-first General Wellness support platform. Woman-owned, minority-owned, based in Virginia, USA.</p>
+                </div>
+                <div>
+                    <p class="font-extrabold text-white mb-1">What we collect</p>
+                    <p class="text-sm">Account details, flash session timestamps and duration, and device information used for security, troubleshooting, and product improvement. Payments are processed by Stripe; FLASHYAF™ does not store full card numbers.</p>
+                </div>
+                <div>
+                    <p class="font-extrabold text-white mb-1">Voice notes and microphone use</p>
+                    <p class="text-sm">Memory Vault™ voice notes are designed to remain local to your device unless you choose to share or submit them. Microphone access is designed to be user-activated and limited by a short timeout window.</p>
+                </div>
+                <div>
+                    <p class="font-extrabold text-white mb-1">What we don't do</p>
+                    <p class="text-sm">We do not use health-screen activity for advertising, and we do not allow advertising pixels on private health-support screens.</p>
+                </div>
+                <div>
+                    <p class="font-extrabold text-white mb-1">Research is always separate and optional</p>
+                    <p class="text-sm">If you opt into a research study, only an anonymous identifier is used — never your name or email. Participation is voluntary, revocable anytime in Settings, and never required to use FLASHYAF™.</p>
+                </div>
+                <div>
+                    <p class="font-extrabold text-white mb-1">Your rights</p>
+                    <p class="text-sm">Access, correction, deletion requests, data portability, and the ability to withdraw research consent or opt out of marketing at any time. Contact customersupport@flashyafapp.com to exercise any right.</p>
+                </div>
+                <div class="border-t border-white/10 pt-6">
+                    <p class="text-xs text-white/40">
+                        FLASHYAF™ is a General Wellness support platform. It does not provide medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider regarding menopause-related transitions or any medical condition. In case of emergency, call 911.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ WAITLIST SECTION ============ -->
+    <section id="waitlist" class="bg-black border-t border-white/10 py-16">
+        <div class="max-w-xl mx-auto px-5 text-center">
+            <p class="text-xs font-bold tracking-widest text-[var(--flame)] uppercase mb-3">Join the Movement</p>
+            <h2 class="text-3xl md:text-4xl font-black uppercase mb-4">Join The Waitlist</h2>
+            <p class="text-white/70 mb-8">
+                Be first to know when FLASHYAF™ opens for early access.
+            </p>
+
+            <div class="sib-form" style="background-color: transparent; padding: 0;">
+                <div id="sib-form-container" class="sib-form-container" style="padding: 0;">
+
+                    <div id="error-message" class="sib-form-message-panel" style="font-family: Helvetica, sans-serif; font-size: 14px; text-align: center; color: #ffffff; background-color: #661d1d; border-color: #ff4949; border-radius: 12px; max-width: 540px; margin-bottom: 12px;">
+                        <div class="sib-form-message-panel__text sib-form-message-panel__text--center">
+                            <span class="sib-form-message-panel__inner-text">Your signup could not be saved. Please try again.</span>
+                        </div>
+                    </div>
+
+                    <div id="success-message" class="sib-form-message-panel" style="font-family: Helvetica, sans-serif; font-size: 14px; text-align: center; color: #ffffff; background-color: #085229; border-color: #13ce66; border-radius: 12px; max-width: 540px; margin-bottom: 12px;">
+                        <div class="sib-form-message-panel__text sib-form-message-panel__text--center">
+                            <span class="sib-form-message-panel__inner-text">You are on the FLASHYAF™ waitlist.</span>
+                        </div>
+                    </div>
+
+                    <div id="sib-container" class="sib-container--large sib-container--vertical" style="max-width: 540px; text-align: center; background-color: transparent; border-width: 0; padding: 0; direction: ltr;">
+
+                        <form id="sib-form" method="POST" action="https://443a6444.sibforms.com/serve/MUIFAMwKesSjBwp-AVCPj8YIUPi7KD1aplNf6MCHuJjUYUiSo4VD1x7V30OTLTMxuAtCx6lB1qFtGS9skY9XeWoMoIFqioW_CeSDKwsMEghUXsVQchcXutzMv8F7VodNQlxxKHQ_z0YIf7jbIRwYVV3uFXZxxU189_H3FmiMaQlF5azTdbq-m_ST_4_cPI4GAe0O1KGGFYUHgmiz6A==" data-type="subscription" class="space-y-4 max-w-md mx-auto">
+
+                            <div class="sib-input sib-form-block" style="padding: 0;">
+                                <div class="form__entry entry_block">
+                                    <div class="form__label-row">
+                                        <label for="EMAIL" class="sr-only">Email Address</label>
+                                        <div class="entry__field">
+                                            <input
+                                                type="email"
+                                                id="EMAIL"
+                                                name="EMAIL"
+                                                autocomplete="email"
+                                                required
+                                                data-required="true"
+                                                placeholder="Enter your email to claim access"
+                                                class="input w-full px-5 py-4 bg-[#111111] border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-[var(--flame)] focus:ring-1 focus:ring-[var(--flame)] text-base font-semibold transition-all duration-200"
+                                            >
+                                        </div>
+                                    </div>
+                                    <label class="entry__error entry__error--primary" style="font-family: Helvetica, sans-serif; font-size: 14px; text-align: left; color: #ffffff; background-color: #661d1d; border-color: #ff4949; border-radius: 8px;"></label>
+                                </div>
+                            </div>
+
+                            <div class="sib-form-block" style="text-align: center; padding: 0;">
+                                <button
+                                    class="btn-pill btn-flame w-full"
+                                    style="font-family: Helvetica, sans-serif; border-width: 0;"
+                                    form="sib-form"
+                                    type="submit"
+                                >
+                                    Join Waitlist
+                                </button>
+                            </div>
+
+                            <input type="text" name="email_address_check" value="" class="input--hidden">
+                            <input type="hidden" name="locale" value="en">
+                            <input type="hidden" name="SOURCE" value="Waitlist">
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ BETA TESTER SECTION ============ -->
+    <section id="beta-tester" class="bg-black border-t border-white/10 py-16">
+        <div class="max-w-xl mx-auto px-5 text-center">
+            <p class="text-xs font-bold tracking-widest text-[var(--ice)] uppercase mb-3">Pioneer Beta Program</p>
+            <h2 class="text-3xl md:text-4xl font-black uppercase mb-4">Become A Beta Tester</h2>
+            <p class="text-white/70 mb-8">
+                Be one of the first 100 Pioneers to help build the FLASHYAF™ community.
+            </p>
+
+            <form method="POST" action="https://443a6444.sibforms.com/serve/MUIFAMwKesSjBwp-AVCPj8YIUPi7KD1aplNf6MCHuJjUYUiSo4VD1x7V30OTLTMxuAtCx6lB1qFtGS9skY9XeWoMoIFqioW_CeSDKwsMEghUXsVQchcXutzMv8F7VodNQlxxKHQ_z0YIf7jbIRwYVV3uFXZxxU189_H3FmiMaQlF5azTdbq-m_ST_4_cPI4GAe0O1KGGFYUHgmiz6A==" data-type="subscription" class="space-y-4 max-w-md mx-auto">
+                <input
+                    type="email"
+                    name="EMAIL"
+                    required
+                    placeholder="Enter your email to apply"
+                    class="input w-full px-5 py-4 bg-[#111111] border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-[var(--ice)] focus:ring-1 focus:ring-[var(--ice)] text-base font-semibold transition-all duration-200"
+                >
+                <input type="text" name="email_address_check" value="" class="input--hidden">
+                <input type="hidden" name="locale" value="en">
+                <input type="hidden" name="SOURCE" value="Pioneer Beta Tester">
+                <button type="submit" class="btn-pill btn-ice w-full">
+                    Apply To Be A Pioneer
+                </button>
+                <p class="text-xs text-white/40">
+                    This sends your email to the current FLASHYAF™ Brevo form. Replace this action URL later with your dedicated Beta Tester Brevo form URL when that list is created.
+                </p>
+            </form>
+        </div>
+    </section>
+
+    <footer class="bg-black border-t border-white/10 py-8 text-center">
+        <p class="text-xs font-bold tracking-widest text-white/30 uppercase">
+            FLASHYAF™ // General Wellness Support // Founder-Led Beta
+        </p>
+    </footer>
 
     <script>
         window.REQUIRED_CODE_ERROR_MESSAGE = 'Please choose a country code';
@@ -180,8 +734,26 @@
             }
         };
         var AUTOHIDE = Boolean(0);
-    </script>
 
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        if (mobileMenuButton && mobileMenu) {
+            mobileMenuButton.addEventListener('click', () => {
+                const isOpen = mobileMenu.classList.toggle('open');
+                mobileMenuButton.setAttribute('aria-expanded', String(isOpen));
+                mobileMenuButton.textContent = isOpen ? 'Close' : 'Menu';
+            });
+
+            mobileMenu.querySelectorAll('a').forEach((link) => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.remove('open');
+                    mobileMenuButton.setAttribute('aria-expanded', 'false');
+                    mobileMenuButton.textContent = 'Menu';
+                });
+            });
+        }
+    </script>
     <script defer src="https://sibforms.com/forms/end-form/build/main.js"></script>
 
 </body>
