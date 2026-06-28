@@ -452,6 +452,8 @@ footer .flinks span.badge-text{color:var(--muted);}
 .phone-mockup .side-btn.vol-up{left:-3px;top:110px;width:3px;height:34px;}
 .phone-mockup .side-btn.vol-down{left:-3px;top:150px;width:3px;height:34px;}
 .phone-caption{text-align:center;font-size:0.82rem;color:var(--muted);margin-top:14px;}
+.phone-caption a{color:var(--ice1);font-weight:600;text-decoration:none;}
+.phone-caption a:hover{text-decoration:underline;}
 
 /* ---------- BIG CENTERED HERO SIGNUP ---------- */
 .hero-signup-big{margin-top:34px;}
