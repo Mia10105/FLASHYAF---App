@@ -548,3 +548,52 @@ footer .flinks span.badge-text{color:var(--muted);}
   color: #3c4858 !important;
   background-color: #ffffff !important;
 }
+
+
+/* ============================================
+   NEW ADDITIONS — Hero dual signup boxes,
+   See It In Action video block, input fix
+   ============================================ */
+
+/* Hero dual signup boxes (red waitlist + blue beta tester) */
+.hero-signup-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 24px;
+}
+.signup-box {
+  flex: 1 1 320px;
+  max-width: 380px;
+  padding: 20px;
+  border-radius: 12px;
+}
+.signup-box-red {
+  background-color: #E63946;
+}
+.signup-box-blue {
+  background-color: #2BB2FC;
+}
+
+/* Brevo input visibility fix — applies to ALL Brevo forms on the page */
+.sib-form input[type="text"] {
+  color: #3c4858 !important;
+  background-color: #ffffff !important;
+  -webkit-text-fill-color: #3c4858 !important;
+}
+
+/* See It In Action video block (sits next to app screenshot in support section) */
+.see-it-action-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 360px;
+}
+.see-it-action-video {
+  width: 100%;
+  max-width: 320px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
