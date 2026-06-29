@@ -541,3 +541,10 @@ footer .flinks span.badge-text{color:var(--muted);}
 @media (max-width:980px){
   .hero-side-art{display:none;}
 }
+/* Fix Brevo form input text visibility */
+#sib-container input,
+#sib-container input[type="text"],
+.sib-input input {
+  color: #3c4858 !important;
+  background-color: #ffffff !important;
+}
