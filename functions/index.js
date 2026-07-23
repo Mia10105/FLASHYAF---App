@@ -6,6 +6,12 @@ const admin = require("firebase-admin");
 admin.initializeApp();
 const db = admin.firestore();
 
+// Beta application token generation + email — see generateBetaToken.js
+// for the full flow (fired when someone confirms their email after
+// filling out the Pioneer Beta interest form).
+exports.generateBetaToken = require("./generateBetaToken").generateBetaToken;
+
+
 const TIME_BLOCKS = [
   { label: "Early Morning", hours: [5, 6, 7, 8] },
   { label: "Morning", hours: [9, 10, 11] },
