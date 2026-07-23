@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --- FLASHYAF BASE VARIABLES --- */
+:root {
+  --color-bg: #0A0A0A;
+  --color-primary: #C0392B;
+  --color-trust-blue: #002366;
+  --color-action-red: #FF4D4D;
+  --color-text: #FFFFFF;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ALL GHOST HUD CLASSES HAVE BEEN TERMINATED */
