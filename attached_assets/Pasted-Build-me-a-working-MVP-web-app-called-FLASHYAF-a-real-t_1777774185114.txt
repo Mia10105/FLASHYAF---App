@@ -1,0 +1,84 @@
+Build me a working MVP web app called FLASHYAF™ — a real-time menopause hot flash tracker.
+
+TECH STACK:
+- React (Vite or Create React App)
+- Firebase Firestore for data storage
+- Firebase Auth (email/password sign-up)
+- Tailwind CSS or inline styles for UI
+- No backend server needed — Firebase handles it all
+
+APP STRUCTURE — build these screens:
+
+1. AUTH SCREEN
+- Email + password sign up / log in
+- Simple clean form
+- On success → go to Home
+
+2. HOME SCREEN
+- Greeting: "Hey [name]! Ready when you are."
+- Big red pulsing button: "START TRACKING"
+- Stats row: "Last flash | Today's count | Avg duration"
+- Bottom nav: Home | History | Settings
+
+3. LIVE FLASH SCREEN (most important)
+- Timer counting up from 0:00 (shows how long flash has lasted)
+- 4 stage buttons the user taps through in order:
+  * STARTED (red)
+  * PEAK — it's intense (deep red)
+  * COOLING DOWN (orange-teal transition)
+  * BACK TO NORMAL (teal/green)
+- Background color shifts with each stage (red → teal)
+- Support drawer at bottom with 3 options:
+  * Breathe With Me (shows "Inhale 4s / Hold 4s / Exhale 6s" animated text)
+  * Encourage Me (shows a random encouragement line)
+  * Humor Me (shows a random funny menopause one-liner)
+- When user taps BACK TO NORMAL → save flash to Firestore → go to Summary
+
+4. SUMMARY SCREEN
+- "Flash logged!"
+- Duration: X min Y sec
+- Stage breakdown shown
+- Buttons: "Log Another" | "See History"
+
+5. HISTORY SCREEN
+- List of all past flashes for this user (from Firestore)
+- Each row: date/time | duration | max stage reached
+- Simple, clean list
+
+6. SETTINGS SCREEN
+- Display name (editable)
+- Sign out button
+
+FIREBASE DATA MODEL:
+- Collection: users/{userId}/flashes
+- Each flash document:
+  { startTime, endTime, durationSeconds, stages: [{stage, timestamp}], userId }
+
+SAMPLE HUMOR LINES (hardcode these for now):
+- "You're not hot, you're just... temperature-gifted."
+- "Plot twist: you ARE the climate change."
+- "Your superpower is generating heat without effort."
+- "Menopause called. It said you're handling it like a boss."
+- "Hot flash complete. You survived. Again."
+
+SAMPLE ENCOURAGEMENT LINES:
+- "You've got this. Every single time."
+- "This will pass. It always does."
+- "You are stronger than any hot flash."
+- "Breathe. You are doing great."
+
+DESIGN RULES:
+- Mobile-first layout (max-width 480px centered)
+- Colors: hot flash state = red (#C0392B), cooling state = teal (#1ABC9C), neutral = dark navy (#1F4E79)
+- Bold, clean fonts — no tiny text
+- Big tap targets (buttons at least 48px tall)
+- App name always shows as FLASHYAF™
+
+IMPORTANT:
+- Must actually connect to Firebase and save/read real data
+- Auth must actually work (sign up + log in)
+- Timer must run in real time
+- All 6 screens must be navigable
+- Deploy so I get a working live URL
+
+Start with the file structure, then build screen by screen.

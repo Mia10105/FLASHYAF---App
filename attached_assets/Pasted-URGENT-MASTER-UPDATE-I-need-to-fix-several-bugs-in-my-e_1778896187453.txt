@@ -1,0 +1,20 @@
+URGENT MASTER UPDATE: I need to fix several bugs in my existing Voice Terminal and add one new screen.
+
+CRITICAL RULES: My app is a large 14-screen architecture using Firebase Auth. It uses inline React.CSSProperties ONLY. You are strictly forbidden from using Tailwind CSS. Do not replace my 600+ line LiveFlashScreen.tsx or my App.tsx with shortened "stubs." Carefully inject these specific logic fixes into the existing code:
+
+PART 1: Fixes for App.tsx
+
+Global Wake Word: Add a continuous, background SpeechRecognition listener that only listens for "hey flashy". When heard, safely route to or mount <LiveFlashScreen /> WITHOUT using global invisible wrappers, position: fixed overlays, or pointer-events: none hacks.
+
+Fix the Manual Mic Button: The physical microphone button on the screen is currently un-tappable. Fix its z-index so it sits above all elements. Add an onClick toggle to manually start/stop the voice listener.
+
+PART 2: Fixes for LiveFlashScreen.tsx
+3. The "Blazing" Update: Find all instances of the word "Peak". Change the UI button text to "Blazing" and change the SpeechRecognition trigger to listen specifically for the word "blazing".
+4. Wait for Command: When "hey flashy" wakes the terminal, it currently auto-starts the first log. Stop this. It should only enter a "listening" state and explicitly wait for the user to say a stage (e.g., "flash started", "blazing") before logging any data.
+5. Fix Audio Feedback Loop: The app is hearing its own text-to-speech voice and looping. Add logic to pause recognition.stop() right before window.speechSynthesis.speak() fires, and restart it onend.
+6. Fix Stealth Mode Mic Death: Toggling Stealth Mode currently unmounts/kills the microphone. Fix the component lifecycle so Stealth Mode ONLY changes the visual CSS to black/faint text, while keeping the continuous listener fully active in the background.
+
+PART 3: New Feature Integration
+7. Community Impact Screen: Create a new screen called FeedbackScreen.tsx and add it to my navigation. Build a clean, inline-styled form with two text areas: "Feature Suggestions" and "My Experience/Impact". Include a submit button that securely pushes this data to my existing Firebase Firestore database into a new collection called user_feedback.
+
+Please output the modified sections for App.tsx and LiveFlashScreen.tsx, and the full code for the new FeedbackScreen.tsx.

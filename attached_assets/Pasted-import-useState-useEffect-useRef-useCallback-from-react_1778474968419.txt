@@ -1,0 +1,1374 @@
+import { useState, useEffect, useRef, useCallback } from "react";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { useAuth } from "@/context/AuthContext";
+import type { Stage, StageEntry, Flash } from "@/types/flash";
+import BodyAreaSelector from "@/components/BodyAreaSelector";
+import { haptic } from "@/lib/haptic";
+import { trackEvent } from "@/lib/analytics";
+
+const HUMOR_LINES = [
+  "You are not hot, you are temperature-gifted. Own it.",
+  "Plot twist: you ARE the climate change.",
+  "Your superpower is generating heat without effort.",
+  "Menopause called. It said you are handling it like a boss.",
+  "Some people pay for hot yoga. You get it free, honey.",
+  "Your internal thermostat is just... wildly ambitious.",
+  "You are literally too hot to function. Scientifically proven.",
+  "Flash duration: impressive. You: completely undefeated.",
+  "Your body said let me turn up the heat. You said watch me.",
+  "Temperature rising. Standards staying high. As they should.",
+  "Even your hot flashes have more confidence than most people.",
+  "Your body runs hot because it runs the whole show.",
+  "Flash over. Legend status: permanently confirmed.",
+  "You are not falling apart. You are upgrading.",
+  "Hot flash? Excuse me, that is a POWER surge.",
+  "Normal people get warm. You get magnificent.",
+  "The thermostat said 72 degrees. Your body said hold my estrogen.",
+  "You are basically a human space heater. Powerful and necessary.",
+  "Scientists call it a hot flash. We call it a moment of intensity.",
+  "Your body is just reminding everyone who is in charge.",
+  "I see you handling business. Absolute legend energy.",
+  "Not today, hot flash. Not today.",
+  "You are literally built different. This just proved it.",
+  "We move. Flash logged. Data secured. You handled it.",
+  "That flash did not know who it was dealing with. Now it does.",
+];
+
+const ENCOURAGEMENT_LINES = [
+  "You have gotten through every single one of these. This is no different.",
+  "Your body is doing something hard right now. You are handling it beautifully.",
+  "Breathe through it. You are stronger than you know.",
+  "This moment will pass. It always does. You are in control.",
+  "Every flash you survive makes you more powerful than before.",
+  "You have done this before. You will do it again. You have got this.",
+  "You are not alone in this. Millions of women are right there with you.",
+  "Your resilience is remarkable. Keep going, you are almost through.",
+  "This too shall pass. And it will. Very soon.",
+  "You are handling this with grace, even when it does not feel that way.",
+  "Take a deep breath. You are safe. You are strong. You are enough.",
+  "Your body is not betraying you. It is going through a powerful change.",
+  "You have survived one hundred percent of your difficult moments so far.",
+  "Right now, in this moment, you are doing exactly what you need to do.",
+  "The discomfort is temporary. Your strength is permanent.",
+];
+
+// ── FIX 3: Varied Back to Normal / completion responses ──────────────────
+const COMPLETION_RESPONSES = [
+  "You made it through. That is what you do. Every single time.",
+  "Flash logged and done. You handled that like the powerhouse you are.",
+  "And just like that, you conquered another one. I am proud of you.",
+  "Flash complete. Your strength is not up for debate.",
+  "That is a wrap. You showed up, you pushed through, you won.",
+  "Done and logged. Another flash, another victory for you.",
+  "You got through it. You always do. That is who you are.",
+  "Flash over. Data saved. You? Absolutely undefeated.",
+  "Another one handled with grace. You make this look easy.",
+  "Logged and done. Nothing stops you. Not even this.",
+  "That flash met its match today. And her name is you.",
+  "You did the thing. Again. Because that is what legends do.",
+  "Flash complete. Your body went through something hard. You made it.",
+  "Done. Logged. Celebrated. You deserve all of it.",
+  "And breathe. You are through it. I have got your data. You have got this.",
+];
+
+const STAGES: Stage[] = ["STARTED", "PEAK", "COOLING_DOWN", "FLASH_ENDED", "BACK_TO_NORMAL"];
+
+const STAGE_LABELS: Record<Stage, string> = {
+  STARTED: "FLASH STARTED",
+  PEAK: "PEAK",
+  COOLING_DOWN: "COOLING DOWN",
+  FLASH_ENDED: "FLASH ENDED",
+  BACK_TO_NORMAL: "BACK TO NORMAL 😊",
+};
+
+const STAGE_COLORS: Record<Stage, string> = {
+  STARTED: "#FF0000",
+  PEAK: "#FF6B35",
+  COOLING_DOWN: "#2E86AB",
+  FLASH_ENDED: "#26A69A",
+  BACK_TO_NORMAL: "#87CEEB",
+};
+
+const STAGE_BG: Record<Stage, string> = {
+  STARTED: "#8B0000",
+  PEAK: "#7A3010",
+  COOLING_DOWN: "#006994",
+  FLASH_ENDED: "#1B6B5A",
+  BACK_TO_NORMAL: "#0D2137",
+};
+
+// ── FIX 1: Expanded voice triggers with all requested phrases ─────────────
+const VOICE_TRIGGERS: Record<string, Stage> = {
+  // Flash Started triggers
+  "started": "STARTED",
+  "begin": "STARTED",
+  "flash started": "STARTED",
+  "flash starting": "STARTED",
+  "start flash": "STARTED",
+  "flashing": "STARTED",
+  "i'm having a hot flash": "STARTED",
+  "im having a hot flash": "STARTED",
+  "having a hot flash": "STARTED",
+  "hot flash starting": "STARTED",
+
+  // Peak triggers
+  "peak": "PEAK",
+  "intense": "PEAK",
+  "peaking": "PEAK",
+  "start peak": "PEAK",
+  "i'm peaking": "PEAK",
+  "im peaking": "PEAK",
+  "peak reached": "PEAK",
+  "i've reached my peak": "PEAK",
+  "ive reached my peak": "PEAK",
+  "reached my peak": "PEAK",
+  "hot flash": "PEAK",
+  "i'm flashing": "PEAK",
+  "im flashing": "PEAK",
+  "flashing hard": "PEAK",
+
+  // Cooling Down triggers
+  "cooling": "COOLING_DOWN",
+  "cooler": "COOLING_DOWN",
+  "better": "COOLING_DOWN",
+  "cooling down": "COOLING_DOWN",
+  "i'm cooling down": "COOLING_DOWN",
+  "im cooling down": "COOLING_DOWN",
+  "peak done": "COOLING_DOWN",
+  "peak over": "COOLING_DOWN",
+  "getting cooler": "COOLING_DOWN",
+  "cooling off": "COOLING_DOWN",
+
+  // Flash Ended triggers
+  "done": "FLASH_ENDED",
+  "finished": "FLASH_ENDED",
+  "ended": "FLASH_ENDED",
+  "flash end": "FLASH_ENDED",
+  "flash ended": "FLASH_ENDED",
+  "flash over": "FLASH_ENDED",
+  "flash stopped": "FLASH_ENDED",
+  "i'm done with that flash": "FLASH_ENDED",
+  "im done with that flash": "FLASH_ENDED",
+  "done with that flash": "FLASH_ENDED",
+  "it stopped": "FLASH_ENDED",
+
+  // Back to Normal triggers
+  "normal": "BACK_TO_NORMAL",
+  "back to normal": "BACK_TO_NORMAL",
+  "recovered": "BACK_TO_NORMAL",
+  "i feel like myself": "BACK_TO_NORMAL",
+  "i feel normal": "BACK_TO_NORMAL",
+  "feeling normal": "BACK_TO_NORMAL",
+  "i made it through": "BACK_TO_NORMAL",
+  "made it through": "BACK_TO_NORMAL",
+  "log flash": "BACK_TO_NORMAL",
+  "all done": "BACK_TO_NORMAL",
+  "all better": "BACK_TO_NORMAL",
+  "feeling better": "BACK_TO_NORMAL",
+};
+
+// ── FIX 4: Note-taking trigger phrases ───────────────────────────────────
+const NOTE_TRIGGER_PHRASES = new Set([
+  "take a note",
+  "save a note",
+  "make a note",
+  "take note",
+  "save note",
+  "record a note",
+  "note this",
+  "remember this",
+  "save this",
+  "write this down",
+  "log a note",
+]);
+
+const HEY_FLASHY_PHRASES = new Set(["hey flashy", "hey flash", "flashy"]);
+const HEY_FLASHY_RESPONSE = "Hey! I am listening — tell me what is happening.";
+
+const VOICE_CONFIRMATIONS: Record<Stage, string> = {
+  STARTED: "Got you, flash started.",
+  PEAK: "Noted. Peak.",
+  COOLING_DOWN: "Good, cooling down.",
+  FLASH_ENDED: "Flash ended.",
+  BACK_TO_NORMAL: "Back to normal. Great job!",
+};
+
+const WAVE_AUDIO_URL = "https://assets.mixkit.co/sfx/preview/mixkit-ocean-waves-loop-1193.mp3";
+const NOTIFICATION_DELAY_MS = 45 * 60 * 1000;
+
+const PLOT_X = 30, PLOT_Y = 6, PLOT_W = 260, PLOT_H = 56;
+const AXIS_BOTTOM = PLOT_Y + PLOT_H;
+
+const GRAPH_INTENSITY: Record<Stage, number> = {
+  STARTED: 78,
+  PEAK: 98,
+  COOLING_DOWN: 85,
+  FLASH_ENDED: 15,
+  BACK_TO_NORMAL: 6,
+};
+
+function gPt(timeS: number, intensity: number, maxTime: number) {
+  return {
+    x: PLOT_X + (timeS / maxTime) * PLOT_W,
+    y: AXIS_BOTTOM - (intensity / 100) * PLOT_H,
+  };
+}
+
+function smoothPath(pts: Array<{ x: number; y: number }>) {
+  if (pts.length < 2) return "";
+  let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+  for (let i = 1; i < pts.length; i++) {
+    const p = pts[i - 1], c = pts[i];
+    const dx = (c.x - p.x) * 0.42;
+    d += ` C ${(p.x + dx).toFixed(1)} ${p.y.toFixed(1)}, ${(c.x - dx).toFixed(1)} ${c.y.toFixed(1)}, ${c.x.toFixed(1)} ${c.y.toFixed(1)}`;
+  }
+  return d;
+}
+
+function computeLiveIntensity(elapsedS: number, stagesArr: StageEntry[]): number {
+  const last = stagesArr[stagesArr.length - 1];
+  const stageElapsedS = (Date.now() - last.timestamp) / 1000;
+  switch (last.stage) {
+    case "STARTED":      return Math.min(78, 5 + Math.min(1, elapsedS / 180) * 73);
+    case "PEAK":         return 98;
+    case "COOLING_DOWN": return Math.max(12, 80 - Math.min(1, stageElapsedS / 120) * 68);
+    case "FLASH_ENDED":  return 15;
+    case "BACK_TO_NORMAL": return 6;
+  }
+}
+
+type DrawerType = "breathe" | "encourage" | null;
+type MicStatus = "starting" | "listening" | "triggered" | "unsupported" | "denied";
+
+// ── FIX 4: Note-taking mode states ───────────────────────────────────────
+type NoteMode = "idle" | "listening" | "saved" | "readback";
+
+interface Props {
+  onComplete: (flash: Flash) => void;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition: typeof SpeechRecognition;
+    webkitSpeechRecognition: typeof SpeechRecognition;
+  }
+}
+
+export default function LiveFlashScreen({ onComplete }: Props) {
+  const { user } = useAuth();
+  const startTimeRef = useRef(Date.now());
+
+  useEffect(() => { trackEvent("flash_started"); }, []);
+
+  const [elapsed, setElapsed] = useState(0);
+  const [timerFrozen, setTimerFrozen] = useState(false);
+  const frozenElapsedRef = useRef(0);
+  const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const [currentStageIdx, setCurrentStageIdx] = useState(0);
+  const [stages, setStages] = useState<StageEntry[]>([
+    { stage: "STARTED", timestamp: startTimeRef.current },
+  ]);
+  const currentStageIdxRef = useRef(0);
+  const stagesRef = useRef(stages);
+
+  const [showRatingOverlay, setShowRatingOverlay] = useState(false);
+  const pendingPeakTargetRef = useRef(1);
+  const peakRatingRef = useRef(0);
+
+  const endTimeRef = useRef(0);
+  const speechShouldContinueRef = useRef(false);
+
+  const [drawer, setDrawer] = useState<DrawerType>(null);
+  const [encourageLine, setEncourageLine] = useState("");
+  const [breathePhase, setBreathePhase] = useState<"inhale" | "hold" | "exhale">("inhale");
+
+  const waveAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [emergencyCooldown, setEmergencyCooldown] = useState(false);
+
+  const [notes, setNotes] = useState("");
+  const notesRef = useRef("");
+  const [bodyAreas, setBodyAreas] = useState<string[]>([]);
+  const bodyAreasRef = useRef<string[]>([]);
+  useEffect(() => { bodyAreasRef.current = bodyAreas; }, [bodyAreas]);
+
+  // ── FIX 4: Voice note journal state ──────────────────────────────────────
+  const [noteMode, setNoteMode] = useState<NoteMode>("idle");
+  const [voiceNotes, setVoiceNotes] = useState<{ text: string; timestamp: number; stage: Stage }[]>([]);
+  const voiceNotesRef = useRef<{ text: string; timestamp: number; stage: Stage }[]>([]);
+  const isCapturingNoteRef = useRef(false);
+  const noteCaptureBufferRef = useRef("");
+  const noteCaptureTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [showNoteJournal, setShowNoteJournal] = useState(false);
+
+  const [micStatus, setMicStatus] = useState<MicStatus>("starting");
+  const [voiceToast, setVoiceToast] = useState("");
+  const [liveTranscript, setLiveTranscript] = useState("");
+  const voiceToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isWaitingForCommandRef = useRef(false);
+  const commandTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isPulsing, setIsPulsing] = useState(false);
+
+  // ── FIX 2: Wake Lock to prevent mic denial on screen sleep ───────────────
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+
+  async function requestWakeLock() {
+    if (!("wakeLock" in navigator)) return;
+    try {
+      wakeLockRef.current = await (navigator as any).wakeLock.request("screen");
+      wakeLockRef.current.addEventListener("release", () => {
+        // Screen lock released — try to re-acquire
+        requestWakeLock();
+      });
+    } catch {
+      // Wake lock not available or denied — that's okay, mic restart handles it
+    }
+  }
+
+  function releaseWakeLock() {
+    if (wakeLockRef.current) {
+      wakeLockRef.current.release().catch(() => {});
+      wakeLockRef.current = null;
+    }
+  }
+
+  // Request wake lock on mount, release on unmount
+  useEffect(() => {
+    requestWakeLock();
+    // Re-request wake lock when page becomes visible again after screen sleep
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        requestWakeLock();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      releaseWakeLock();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
+  useEffect(() => { currentStageIdxRef.current = currentStageIdx; }, [currentStageIdx]);
+  useEffect(() => { stagesRef.current = stages; }, [stages]);
+  useEffect(() => { notesRef.current = notes; }, [notes]);
+  useEffect(() => { voiceNotesRef.current = voiceNotes; }, [voiceNotes]);
+
+  const rafRef = useRef<number>(0);
+  const [, setGraphTick] = useState(0);
+  useEffect(() => {
+    if (timerFrozen) return;
+    let running = true;
+    function tick() {
+      if (!running) return;
+      setGraphTick((t) => t + 1);
+      rafRef.current = requestAnimationFrame(tick);
+    }
+    rafRef.current = requestAnimationFrame(tick);
+    return () => { running = false; cancelAnimationFrame(rafRef.current); };
+  }, [timerFrozen]);
+
+  useEffect(() => {
+    localStorage.setItem("activeFlash", startTimeRef.current.toString());
+    const notifTimer = setTimeout(() => {
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("Hey! Did your flash end?", {
+          body: "Tap here to log Flash Ended.",
+          icon: "/favicon.ico",
+        });
+      }
+    }, NOTIFICATION_DELAY_MS);
+    return () => clearTimeout(notifTimer);
+  }, []);
+
+  // ─── Speech synthesis ─────────────────────────────────────────────────────
+  function speak(text: string, onEnd?: () => void) {
+    if (!window.speechSynthesis) { onEnd?.(); return; }
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate = 0.85;
+    utter.pitch = 1.15;
+    if (onEnd) utter.onend = onEnd;
+    function pickVoiceAndSpeak() {
+      const voices = window.speechSynthesis.getVoices();
+      const femaleVoice =
+        voices.find(
+          (v) =>
+            (v.name.toLowerCase().includes("samantha") ||
+              v.name.toLowerCase().includes("karen") ||
+              v.name.toLowerCase().includes("moira") ||
+              v.name.toLowerCase().includes("tessa") ||
+              v.name.toLowerCase().includes("victoria") ||
+              v.name.toLowerCase().includes("fiona") ||
+              v.name.toLowerCase().includes("zira") ||
+              v.name.toLowerCase().includes("aria") ||
+              v.name.toLowerCase().includes("female")) &&
+            v.lang.startsWith("en")
+        ) || voices.find((v) => v.lang.startsWith("en"));
+      if (femaleVoice) utter.voice = femaleVoice;
+      window.speechSynthesis.speak(utter);
+    }
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) pickVoiceAndSpeak();
+    else window.speechSynthesis.addEventListener("voiceschanged", pickVoiceAndSpeak, { once: true });
+  }
+
+  // ── FIX 4: Save voice note to journal ────────────────────────────────────
+  function saveVoiceNote(text: string) {
+    const currentStage = STAGES[currentStageIdxRef.current];
+    const newNote = { text: text.trim(), timestamp: Date.now(), stage: currentStage };
+    setVoiceNotes((prev) => [...prev, newNote]);
+    voiceNotesRef.current = [...voiceNotesRef.current, newNote];
+    // Also append to text notes
+    setNotes((prev) => {
+      const separator = prev.trim() ? "\n" : "";
+      return prev + separator + `[Voice note] ${text.trim()}`;
+    });
+    setNoteMode("saved");
+    showVoiceToast("📝 Note saved!");
+    // Ask if user wants it read back
+    speak("Note saved. Do you want me to read it back to you? Say yes or no.", () => {
+      setNoteMode("readback");
+      // Wait 5 seconds for response, then go back to idle
+      noteCaptureTimerRef.current = setTimeout(() => {
+        setNoteMode("idle");
+      }, 6000);
+    });
+  }
+
+  // ─── handleComplete ───────────────────────────────────────────────────────
+  const handleCompleteRef = useRef<(completedStages: StageEntry[]) => void>(async () => {});
+
+  handleCompleteRef.current = async (completedStages: StageEntry[]) => {
+    if (!user) return;
+    setSaving(true);
+    localStorage.removeItem("activeFlash");
+
+    const endTime = endTimeRef.current || Date.now();
+    const durationSeconds = Math.floor((endTime - startTimeRef.current) / 1000);
+    trackEvent("flash_completed", { duration_seconds: durationSeconds });
+
+    // Combine text notes + voice notes for saving
+    const allNotes = [
+      notesRef.current.trim(),
+      ...voiceNotesRef.current.map((n) => `[${n.stage} - Voice note] ${n.text}`),
+    ].filter(Boolean).join("\n");
+
+    const flash: Flash = {
+      userId: user.uid,
+      startTime: startTimeRef.current,
+      endTime,
+      durationSeconds,
+      stages: completedStages,
+      ...(peakRatingRef.current > 0 && { peakRating: peakRatingRef.current }),
+      ...(allNotes && { notes: allNotes }),
+      ...(bodyAreasRef.current.length > 0 && { bodyAreas: bodyAreasRef.current }),
+    };
+
+    try {
+      const ref = await addDoc(collection(db, "users", user.uid, "flashes"), flash);
+      flash.id = ref.id;
+    } catch {
+      try {
+        const PENDING_KEY = "flashyaf_pending_flashes";
+        const pending = JSON.parse(localStorage.getItem(PENDING_KEY) || "[]");
+        pending.push({ flashData: flash, userId: user.uid });
+        localStorage.setItem(PENDING_KEY, JSON.stringify(pending));
+      } catch { }
+    }
+
+    setSaving(false);
+
+    // ── FIX 3: Pick a random completion response — never the same twice ──
+    const lastUsedIdx = parseInt(localStorage.getItem("flashyaf_last_completion_idx") || "-1");
+    let newIdx = Math.floor(Math.random() * COMPLETION_RESPONSES.length);
+    // Avoid repeating the same one as last time
+    if (newIdx === lastUsedIdx) newIdx = (newIdx + 1) % COMPLETION_RESPONSES.length;
+    localStorage.setItem("flashyaf_last_completion_idx", newIdx.toString());
+    const completionLine = COMPLETION_RESPONSES[newIdx];
+
+    speechShouldContinueRef.current = true;
+
+    let navigated = false;
+    function doNavigate() {
+      if (navigated) return;
+      navigated = true;
+      onComplete(flash);
+    }
+
+    speak(completionLine, () => setTimeout(doNavigate, 1000));
+    setTimeout(doNavigate, 14000);
+  };
+
+  // ─── jumpToStage ──────────────────────────────────────────────────────────
+  const jumpToStage = useCallback((targetIdx: number, finalTimestamp?: number) => {
+    const currentIdx = currentStageIdxRef.current;
+    if (targetIdx <= currentIdx || targetIdx >= STAGES.length) return;
+
+    const now = Date.now();
+    const newEntries: StageEntry[] = [];
+    for (let i = currentIdx + 1; i <= targetIdx; i++) {
+      const ts = i === targetIdx && finalTimestamp ? finalTimestamp : now;
+      newEntries.push({ stage: STAGES[i], timestamp: ts });
+    }
+
+    const finalStage = STAGES[targetIdx];
+    setCurrentStageIdx(targetIdx);
+    setStages((prev) => {
+      const updated = [...prev, ...newEntries];
+      stagesRef.current = updated;
+      if (finalStage === "BACK_TO_NORMAL") handleCompleteRef.current(updated);
+      return updated;
+    });
+  }, []);
+
+  function handleStageBtn(targetIdx: number) {
+    const currentIdx = currentStageIdxRef.current;
+    if (targetIdx <= currentIdx) return;
+    trackEvent("stage_tapped", { stage: STAGES[targetIdx] });
+    if (STAGES[targetIdx] === "BACK_TO_NORMAL") {
+      const exactEnd = Date.now();
+      endTimeRef.current = exactEnd;
+      frozenElapsedRef.current = Math.floor((exactEnd - startTimeRef.current) / 1000);
+      setTimerFrozen(true);
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      pendingPeakTargetRef.current = targetIdx;
+      setShowRatingOverlay(true);
+      return;
+    }
+    jumpToStage(targetIdx);
+  }
+
+  function handleRatingTap(rating: number) {
+    peakRatingRef.current = rating;
+    setShowRatingOverlay(false);
+    const endIdx = STAGES.indexOf("BACK_TO_NORMAL");
+    jumpToStage(endIdx, endTimeRef.current || Date.now());
+  }
+  function handleSkipRating() {
+    setShowRatingOverlay(false);
+    const endIdx = STAGES.indexOf("BACK_TO_NORMAL");
+    jumpToStage(endIdx, endTimeRef.current || Date.now());
+  }
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!timerFrozen) setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000));
+    }, 1000);
+    timerIntervalRef.current = interval;
+    return () => clearInterval(interval);
+  }, [timerFrozen]);
+
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  useEffect(() => {
+    const goOnline  = () => setIsOnline(true);
+    const goOffline = () => setIsOnline(false);
+    window.addEventListener("online",  goOnline);
+    window.addEventListener("offline", goOffline);
+    return () => {
+      window.removeEventListener("online",  goOnline);
+      window.removeEventListener("offline", goOffline);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!user || !isOnline) return;
+    const PENDING_KEY = "flashyaf_pending_flashes";
+    const pending: { flashData: Flash; userId: string }[] = JSON.parse(
+      localStorage.getItem(PENDING_KEY) || "[]"
+    );
+    if (pending.length === 0) return;
+    (async () => {
+      const remaining: typeof pending = [];
+      for (const item of pending) {
+        if (item.userId !== user.uid) { remaining.push(item); continue; }
+        try {
+          await addDoc(collection(db, "users", user.uid, "flashes"), item.flashData);
+        } catch { remaining.push(item); }
+      }
+      localStorage.setItem(PENDING_KEY, JSON.stringify(remaining));
+    })();
+  }, [user, isOnline]);
+
+  const breatheSeqRef = useRef<{ cancel: () => void } | null>(null);
+
+  function startBreatheSequence() {
+    breatheSeqRef.current?.cancel();
+    const alive = { current: true };
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const STEPS: { text: string; phase: "inhale" | "hold" | "exhale"; silenceMs: number }[] = [
+      { text: "Breathe in slowly through your nose", phase: "inhale", silenceMs: 4000 },
+      { text: "Hold your breath gently",              phase: "hold",   silenceMs: 4000 },
+      { text: "Now exhale slowly through your mouth", phase: "exhale", silenceMs: 6000 },
+    ];
+    let stepIdx = 0;
+    let roundsDone = 0;
+    const TOTAL_ROUNDS = 4;
+    function nextStep() {
+      if (!alive.current) return;
+      if (roundsDone >= TOTAL_ROUNDS) return;
+      const step = STEPS[stepIdx];
+      setBreathePhase(step.phase);
+      speak(step.text, () => {
+        if (!alive.current) return;
+        const t = setTimeout(() => {
+          stepIdx++;
+          if (stepIdx >= STEPS.length) { stepIdx = 0; roundsDone++; }
+          nextStep();
+        }, step.silenceMs);
+        timers.push(t);
+      });
+    }
+    nextStep();
+    breatheSeqRef.current = {
+      cancel: () => {
+        alive.current = false;
+        timers.forEach(clearTimeout);
+        window.speechSynthesis?.cancel();
+      },
+    };
+  }
+
+  function startWaves(vol = 0.6) {
+    if (!waveAudioRef.current) {
+      waveAudioRef.current = new Audio(WAVE_AUDIO_URL);
+      waveAudioRef.current.loop = true;
+    }
+    waveAudioRef.current.volume = vol;
+    waveAudioRef.current.play().catch(() => {});
+  }
+  function stopWaves() {
+    if (waveAudioRef.current) { waveAudioRef.current.pause(); waveAudioRef.current.currentTime = 0; }
+  }
+
+  function openDrawer(type: DrawerType) {
+    if (drawer === type) {
+      breatheSeqRef.current?.cancel();
+      breatheSeqRef.current = null;
+      stopWaves();
+      setDrawer(null);
+      return;
+    }
+    trackEvent("support_drawer_opened", { drawer_type: type ?? "unknown" });
+    stopWaves();
+    if (type === "breathe") {
+      const today = new Date();
+      const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+      localStorage.setItem(`flashyaf_breathe_done_${todayKey}`, "1");
+      startWaves(0.6);
+      startBreatheSequence();
+    } else if (type === "encourage") {
+      const line = ENCOURAGEMENT_LINES[Math.floor(Math.random() * ENCOURAGEMENT_LINES.length)];
+      setEncourageLine(line); speak(line);
+    }
+    setDrawer(type);
+  }
+
+  function triggerEmergencyCooldown() {
+    const today = new Date();
+    const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    localStorage.setItem(`flashyaf_breathe_done_${todayKey}`, "1");
+    setEmergencyCooldown(true);
+    startWaves(0.6);
+    setDrawer("breathe");
+    setBreathePhase("inhale");
+    speak("I have got you. Let us cool this down together. Follow my breath.", () => {
+      startBreatheSequence();
+    });
+  }
+
+  function exitEmergencyCooldown() {
+    setEmergencyCooldown(false);
+    breatheSeqRef.current?.cancel();
+    breatheSeqRef.current = null;
+    stopWaves();
+    setDrawer(null);
+  }
+
+  function showVoiceToast(msg: string) {
+    setVoiceToast(msg);
+    setMicStatus("triggered");
+    if (voiceToastTimerRef.current) clearTimeout(voiceToastTimerRef.current);
+    voiceToastTimerRef.current = setTimeout(() => { setVoiceToast(""); setMicStatus("listening"); }, 2500);
+  }
+
+  function triggerVisualPulse() {
+    setIsPulsing(true);
+    setTimeout(() => setIsPulsing(false), 8000);
+  }
+
+  // ── FIX 2: Voice recognition with wake lock recovery ─────────────────────
+  useEffect(() => {
+    const SpeechRecognitionAPI = window.webkitSpeechRecognition || window.SpeechRecognition;
+    if (!SpeechRecognitionAPI) { setMicStatus("unsupported"); return; }
+
+    const recognition = new SpeechRecognitionAPI();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+
+    const shouldRunRef = { current: true };
+    const restartPendingRef = { current: false };
+
+    function restartRecognition(delayMs: number) {
+      if (!shouldRunRef.current || restartPendingRef.current) return;
+      restartPendingRef.current = true;
+      const backoff = Math.min(delayMs, 4000);
+      setTimeout(() => {
+        restartPendingRef.current = false;
+        if (!shouldRunRef.current) return;
+        try { recognition.start(); }
+        catch { restartRecognition(Math.min(backoff * 2, 4000)); }
+      }, backoff);
+    }
+
+    recognition.onstart = () => { setMicStatus("listening"); };
+    recognition.onerror = (e: SpeechRecognitionErrorEvent) => {
+      if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+        setMicStatus("denied");
+        // ── FIX 2: If denied after screen sleep, retry after 2s ──────────
+        setTimeout(() => {
+          if (!shouldRunRef.current) return;
+          setMicStatus("starting");
+          restartRecognition(2000);
+        }, 2000);
+        return;
+      }
+      restartRecognition(800);
+    };
+    recognition.onend = () => { restartRecognition(300); };
+
+    // ── FIX 2: Re-request wake lock when page becomes visible ────────────
+    const handleVisibilityForMic = () => {
+      if (document.visibilityState === "visible" && shouldRunRef.current) {
+        // Give browser 1.5s to settle after screen wake before restarting mic
+        setTimeout(() => {
+          if (!shouldRunRef.current) return;
+          setMicStatus("starting");
+          restartRecognition(500);
+        }, 1500);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityForMic);
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let allText = "";
+      for (let i = 0; i < event.results.length; i++) allText += event.results[i][0].transcript;
+      setLiveTranscript(allText.trim());
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const rawText = event.results[i][0].transcript.toLowerCase().trim();
+        const words = rawText.split(/\s+/);
+        const currentIdx = currentStageIdxRef.current;
+
+        // ── FIX 4: Note readback response ────────────────────────────────
+        if (noteMode === "readback" || isCapturingNoteRef.current === false && noteMode === "readback") {
+          if (rawText.includes("yes") || rawText.includes("yeah") || rawText.includes("sure") || rawText.includes("please")) {
+            if (noteCaptureTimerRef.current) clearTimeout(noteCaptureTimerRef.current);
+            setNoteMode("idle");
+            const lastNote = voiceNotesRef.current[voiceNotesRef.current.length - 1];
+            if (lastNote) speak(`Here is your note: ${lastNote.text}`);
+            continue;
+          } else if (rawText.includes("no") || rawText.includes("nope") || rawText.includes("skip")) {
+            if (noteCaptureTimerRef.current) clearTimeout(noteCaptureTimerRef.current);
+            setNoteMode("idle");
+            speak("Got it. Note is saved in your journal.");
+            continue;
+          }
+        }
+
+        // ── FIX 4: Capture note content after "ready" prompt ────────────
+        if (isCapturingNoteRef.current && event.results[i].isFinal) {
+          if (noteCaptureTimerRef.current) clearTimeout(noteCaptureTimerRef.current);
+          isCapturingNoteRef.current = false;
+          const noteText = event.results[i][0].transcript.trim();
+          if (noteText) {
+            saveVoiceNote(noteText);
+          } else {
+            setNoteMode("idle");
+            speak("I did not catch that. You can type your note below.");
+          }
+          continue;
+        }
+
+        // ── Wake word detection ───────────────────────────────────────────
+        const isWake = HEY_FLASHY_PHRASES.has(rawText) ||
+          words.some((_w: string, j: number) => j < words.length - 1 && HEY_FLASHY_PHRASES.has(`${words[j]} ${words[j + 1]}`));
+
+        if (isWake) {
+          isWaitingForCommandRef.current = true;
+          if (commandTimeoutRef.current) clearTimeout(commandTimeoutRef.current);
+          commandTimeoutRef.current = setTimeout(() => {
+            isWaitingForCommandRef.current = false;
+            setIsPulsing(false);
+          }, 8000);
+          speak("I'm here, how can I help?");
+          triggerVisualPulse();
+          showVoiceToast("👂 Ready — say your command");
+          continue;
+        }
+
+        // ── Stage 2: Action commands ──────────────────────────────────────
+        if (!isWaitingForCommandRef.current) continue;
+
+        // ── FIX 4: Check for note-taking command ─────────────────────────
+        let isNoteCommand = false;
+        for (const phrase of NOTE_TRIGGER_PHRASES) {
+          if (rawText.includes(phrase)) { isNoteCommand = true; break; }
+        }
+
+        if (isNoteCommand) {
+          isWaitingForCommandRef.current = false;
+          setIsPulsing(false);
+          if (commandTimeoutRef.current) clearTimeout(commandTimeoutRef.current);
+          isCapturingNoteRef.current = true;
+          setNoteMode("listening");
+          speak("Go ahead, I am ready.", () => {
+            // Auto-cancel note capture after 15s if nothing said
+            noteCaptureTimerRef.current = setTimeout(() => {
+              if (isCapturingNoteRef.current) {
+                isCapturingNoteRef.current = false;
+                setNoteMode("idle");
+                speak("I did not catch anything. You can type your note below.");
+              }
+            }, 15000);
+          });
+          showVoiceToast("📝 Say your note now...");
+          continue;
+        }
+
+        // ── Stage trigger matching ────────────────────────────────────────
+        let targetStage: Stage | null = null;
+        for (const word of words) {
+          if (VOICE_TRIGGERS[word]) { targetStage = VOICE_TRIGGERS[word]; break; }
+        }
+        if (!targetStage) {
+          for (let j = 0; j < words.length - 1; j++) {
+            const bigram = `${words[j]} ${words[j + 1]}`;
+            if (VOICE_TRIGGERS[bigram]) { targetStage = VOICE_TRIGGERS[bigram]; break; }
+          }
+        }
+        if (!targetStage) {
+          for (let j = 0; j < words.length - 2; j++) {
+            const trigram = `${words[j]} ${words[j + 1]} ${words[j + 2]}`;
+            if (VOICE_TRIGGERS[trigram]) { targetStage = VOICE_TRIGGERS[trigram]; break; }
+          }
+        }
+        // Check longer phrases (4+ words)
+        if (!targetStage) {
+          for (const phrase of Object.keys(VOICE_TRIGGERS)) {
+            if (rawText.includes(phrase)) { targetStage = VOICE_TRIGGERS[phrase]; break; }
+          }
+        }
+        if (!targetStage) continue;
+
+        const targetIdx = STAGES.indexOf(targetStage);
+        if (targetIdx <= currentIdx) continue;
+
+        isWaitingForCommandRef.current = false;
+        setIsPulsing(false);
+        if (commandTimeoutRef.current) clearTimeout(commandTimeoutRef.current);
+
+        speak(VOICE_CONFIRMATIONS[targetStage]);
+        showVoiceToast(`"${event.results[i][0].transcript.trim()}" → ${STAGE_LABELS[targetStage]}`);
+
+        if (targetStage === "BACK_TO_NORMAL") {
+          const exactEnd = Date.now();
+          endTimeRef.current = exactEnd;
+          frozenElapsedRef.current = Math.floor((exactEnd - startTimeRef.current) / 1000);
+          setTimerFrozen(true);
+          if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+          pendingPeakTargetRef.current = targetIdx;
+          setTimeout(() => setShowRatingOverlay(true), 150);
+        } else {
+          setTimeout(() => jumpToStage(targetIdx), 100);
+        }
+        break;
+      }
+    };
+
+    try { recognition.start(); } catch { restartRecognition(500); }
+
+    return () => {
+      shouldRunRef.current = false;
+      document.removeEventListener("visibilitychange", handleVisibilityForMic);
+      try { recognition.stop(); } catch {}
+      if (!speechShouldContinueRef.current) window.speechSynthesis?.cancel();
+      stopWaves();
+      if (voiceToastTimerRef.current) clearTimeout(voiceToastTimerRef.current);
+      if (commandTimeoutRef.current) clearTimeout(commandTimeoutRef.current);
+      if (noteCaptureTimerRef.current) clearTimeout(noteCaptureTimerRef.current);
+      isWaitingForCommandRef.current = false;
+      isCapturingNoteRef.current = false;
+    };
+  }, [jumpToStage]);
+
+  // ─── Derived ──────────────────────────────────────────────────────────────
+  const currentStage = STAGES[currentStageIdx];
+  const formatTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  const displayElapsed = timerFrozen ? frozenElapsedRef.current : elapsed;
+  const isLightBg = false;
+
+  const containerBg = currentStage === "COOLING_DOWN"
+    ? "linear-gradient(180deg, #006994 0%, #0087BF 100%)"
+    : currentStage === "FLASH_ENDED"
+    ? "linear-gradient(180deg, #1B6B5A 0%, #22897A 100%)"
+    : STAGE_BG[currentStage];
+
+  const micIcon = micStatus === "triggered" ? "🎙️" : micStatus === "listening" ? "🎤" : "🚫";
+  const micLabel = micStatus === "triggered" ? "Heard you!" : micStatus === "listening" ? "Listening..." : micStatus === "denied" ? "Restarting mic..." : micStatus === "unsupported" ? "Voice off" : "Starting...";
+
+  // ─── Graph computation ────────────────────────────────────────────────────
+  const startMs = startTimeRef.current;
+  const lastStageName = stages[stages.length - 1].stage;
+  const isFlashComplete = lastStageName === "BACK_TO_NORMAL";
+  const lastStageRelS = stages.length > 1
+    ? Math.max(...stages.map((s) => (s.timestamp - startMs) / 1000))
+    : displayElapsed;
+  const maxTime = Math.max(displayElapsed, lastStageRelS, 30);
+  const liveIntensityVal = computeLiveIntensity(displayElapsed, stages);
+  const rawPoints: Array<{ x: number; y: number }> = [gPt(0, 0, maxTime)];
+  for (const s of stages) {
+    if (s.stage === "STARTED") continue;
+    rawPoints.push(gPt((s.timestamp - startMs) / 1000, GRAPH_INTENSITY[s.stage], maxTime));
+  }
+  if (!isFlashComplete) {
+    rawPoints.push(gPt(displayElapsed, liveIntensityVal, maxTime));
+  }
+  const gPoints = rawPoints
+    .sort((a, b) => a.x - b.x)
+    .filter((pt, i, arr) => i === 0 || pt.x - arr[i - 1].x > 2);
+  const gLinePath = smoothPath(gPoints);
+  const gLastPt = gPoints[gPoints.length - 1];
+  const gAreaPath = gPoints.length >= 2
+    ? `${gLinePath} L ${gLastPt.x.toFixed(1)} ${AXIS_BOTTOM} L ${PLOT_X} ${AXIS_BOTTOM} Z`
+    : "";
+  const lineColor = STAGE_COLORS[currentStage];
+
+  const xTicks: number[] = [0];
+  const tickStep = maxTime <= 120 ? 30 : maxTime <= 300 ? 60 : 120;
+  for (let t = tickStep; t < maxTime; t += tickStep) xTicks.push(t);
+  xTicks.push(maxTime);
+
+  return (
+    <div style={{
+      ...styles.container,
+      background: containerBg,
+      animation: currentStage === "STARTED" ? "peakPulse 1.2s ease-in-out infinite" : "none",
+    } as React.CSSProperties}>
+
+      {showRatingOverlay && (
+        <div style={styles.ratingOverlay}>
+          <div style={styles.ratingCard}>
+            <p style={styles.ratingEmoji}>🌡️</p>
+            <p style={styles.ratingTitle}>How bad was it?</p>
+            <p style={styles.ratingSubtitle}>Now that the peak has passed — how intense was it? 1 to 5 stars. Totally optional.</p>
+            <div style={styles.starsRow}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button key={star} style={styles.starBtn} onClick={() => handleRatingTap(star)}>
+                  ★<span style={styles.starLabel}>{star}</span>
+                </button>
+              ))}
+            </div>
+            <p style={styles.ratingHint}>Tap a star or skip</p>
+            <button style={styles.skipRatingBtn} onClick={handleSkipRating}>Skip</button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Header ── */}
+      <div style={styles.header}>
+        <p style={styles.appName}>FLASHYAF™</p>
+        <div style={styles.headerRight}>
+          <div style={{
+            ...styles.micPill,
+            background: isPulsing ? "rgba(245,166,35,0.35)" : noteMode === "listening" ? "rgba(100,200,100,0.35)" : micStatus === "triggered" ? "rgba(26,188,156,0.3)" : micStatus === "listening" ? "rgba(255,255,255,0.18)" : "rgba(255,80,80,0.25)",
+            border: isPulsing ? "1px solid rgba(245,166,35,0.8)" : noteMode === "listening" ? "1px solid rgba(100,200,100,0.8)" : micStatus === "listening" || micStatus === "triggered" ? "1px solid rgba(255,255,255,0.35)" : "1px solid rgba(255,80,80,0.4)",
+            boxShadow: isPulsing ? "0 0 12px rgba(245,166,35,0.5)" : noteMode === "listening" ? "0 0 12px rgba(100,200,100,0.5)" : "none",
+            transition: "all 0.25s ease",
+          }}>
+            <span style={{
+              ...styles.micDot,
+              background: isPulsing ? "#F5A623" : noteMode === "listening" ? "#64C864" : micStatus === "triggered" ? "#1ABC9C" : micStatus === "listening" ? "#fff" : "#ff6b6b",
+              animation: isPulsing || noteMode === "listening" ? "micPulse 0.8s ease-in-out infinite" : micStatus === "listening" ? "micPulse 1.4s ease-in-out infinite" : "none",
+            }} />
+            <span style={styles.micLabel}>
+              {noteMode === "listening" ? "Say your note..." : noteMode === "readback" ? "Say yes or no" : isPulsing ? "Say command" : micLabel}
+            </span>
+            <span style={{ fontSize: "13px" }}>{noteMode === "listening" ? "📝" : isPulsing ? "🟡" : micIcon}</span>
+          </div>
+          <p style={styles.liveLabel}>LIVE</p>
+        </div>
+      </div>
+
+      {/* Offline banner */}
+      {!isOnline && (
+        <div style={styles.offlineBanner}>
+          <span style={styles.offlineDot} />
+          <span style={styles.offlineText}>Offline — your flash will sync when connection returns</span>
+        </div>
+      )}
+
+      {voiceToast && <div style={styles.voiceToast}>{voiceToast}</div>}
+
+      {micStatus !== "unsupported" && micStatus !== "denied" && (
+        <div style={styles.debugBar}>
+          <span style={styles.debugBarLabel}>MIC</span>
+          <span style={styles.debugBarWords}>
+            {liveTranscript ? liveTranscript.trim().split(/\s+/).slice(-5).join(" ") : micStatus === "listening" ? "listening…" : "starting…"}
+          </span>
+        </div>
+      )}
+
+      {/* ── FIX 2: Mic denied — show helpful message instead of just icon ── */}
+      {micStatus === "denied" && (
+        <div style={styles.micDeniedBanner}>
+          <span>🎤 Mic restarting — tap the screen if it does not recover</span>
+        </div>
+      )}
+
+      {/* ── Timer ── */}
+      <div style={styles.timerArea}>
+        <p style={styles.timerLabel}>Flash Duration</p>
+        <p style={styles.timer}>{formatTime(displayElapsed)}</p>
+        {peakRatingRef.current > 0 && currentStageIdx >= 1 && (
+          <div style={styles.peakRatingBadge}>
+            {"★".repeat(peakRatingRef.current)}{"☆".repeat(5 - peakRatingRef.current)} intensity
+          </div>
+        )}
+        <div style={{ ...styles.stageBadge, background: STAGE_COLORS[currentStage], color: isLightBg ? "#0A0A0A" : "#fff" }}>
+          {STAGE_LABELS[currentStage]}
+        </div>
+      </div>
+
+      {/* ── Graph ── */}
+      <div style={styles.graphPanel}>
+        <svg
+          viewBox="0 0 300 88"
+          style={{ width: "100%", overflow: "visible" }}
+          aria-label="Flash intensity over time"
+        >
+          <defs>
+            <linearGradient id="flashAreaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={lineColor} stopOpacity={0.7} />
+              <stop offset="100%" stopColor={lineColor} stopOpacity={0.0} />
+            </linearGradient>
+          </defs>
+          <text x={10} y={PLOT_Y + PLOT_H / 2} textAnchor="middle" fontSize={7} fill="rgba(255,255,255,0.4)" transform={`rotate(-90, 10, ${PLOT_Y + PLOT_H / 2})`}>Intensity</text>
+          {[0, 0.25, 0.5, 0.75, 1].map((t) => {
+            const y = AXIS_BOTTOM - t * PLOT_H;
+            return (
+              <g key={t}>
+                <line x1={PLOT_X - 3} y1={y} x2={PLOT_X + PLOT_W} y2={y} stroke="rgba(255,255,255,0.07)" strokeWidth={1} />
+                <text x={PLOT_X - 5} y={y + 2.5} textAnchor="end" fontSize={6.5} fill="rgba(255,255,255,0.3)">{Math.round(t * 100)}</text>
+              </g>
+            );
+          })}
+          {xTicks.map((t) => {
+            const x = gPt(t, 0, maxTime).x;
+            return (
+              <g key={t}>
+                <line x1={x} y1={AXIS_BOTTOM} x2={x} y2={AXIS_BOTTOM + 3} stroke="rgba(255,255,255,0.3)" strokeWidth={1} />
+                <text x={x} y={AXIS_BOTTOM + 10} textAnchor="middle" fontSize={6.5} fill="rgba(255,255,255,0.35)">{t}s</text>
+              </g>
+            );
+          })}
+          <text x={PLOT_X + PLOT_W / 2} y={88} textAnchor="middle" fontSize={7} fill="rgba(255,255,255,0.35)">Time (seconds)</text>
+          {gAreaPath && <path d={gAreaPath} fill="url(#flashAreaGrad)" />}
+          {gLinePath && <path d={gLinePath} fill="none" stroke={lineColor} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" />}
+          {stages.map((s, i) => {
+            if (i === 0) return null;
+            const ts = (s.timestamp - startMs) / 1000;
+            const pt = gPt(ts, GRAPH_INTENSITY[s.stage], maxTime);
+            return <circle key={i} cx={pt.x} cy={pt.y} r={5} fill={STAGE_COLORS[s.stage]} stroke="#fff" strokeWidth={1.5} />;
+          })}
+          {gLinePath && (
+            <>
+              <circle cx={gLastPt.x} cy={gLastPt.y} r={5} fill={lineColor} opacity={0.25} />
+              <circle cx={gLastPt.x} cy={gLastPt.y} r={3} fill={lineColor} />
+            </>
+          )}
+        </svg>
+      </div>
+
+      {/* ── Stage buttons ── */}
+      <div style={styles.stageButtons}>
+        {STAGES.map((stage, i) => {
+          const isActive = i === currentStageIdx;
+          const isPast = i < currentStageIdx;
+          const isFuture = i > currentStageIdx;
+          return (
+            <button
+              key={stage}
+              style={{
+                ...styles.stageBtn,
+                background: isActive ? STAGE_COLORS[stage] : isPast ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.1)",
+                color: isActive ? (stage === "BACK_TO_NORMAL" ? "#0A0A0A" : "#fff") : isPast ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.85)",
+                border: isActive ? "none" : isFuture ? `1px solid ${STAGE_COLORS[stage]}88` : "1px solid rgba(255,255,255,0.1)",
+                fontWeight: isActive ? 800 : 600,
+                boxShadow: isActive ? "0 4px 20px rgba(0,0,0,0.3)" : "none",
+              }}
+              onClick={() => { haptic(i === STAGES.length - 1 ? 200 : 100); handleStageBtn(i); }}
+              disabled={saving}
+            >
+              {isPast && <span style={{ marginRight: "5px", opacity: 0.6 }}>✓</span>}
+              {STAGE_LABELS[stage]}
+              {isActive && saving && <span style={{ marginLeft: "8px", opacity: 0.7, fontSize: "12px" }}>Saving...</span>}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ── Body area selector ── */}
+      <BodyAreaSelector selected={bodyAreas} onChange={setBodyAreas} />
+
+      {/* ── FIX 5: Notes always visible at every stage + voice note journal ── */}
+      <div style={styles.notesArea}>
+        <div style={styles.notesHeader}>
+          <span style={styles.notesHeaderLabel}>📝 Flash Notes</span>
+          <button style={styles.notesJournalBtn} onClick={() => setShowNoteJournal(!showNoteJournal)}>
+            {voiceNotes.length > 0 ? `🎙️ ${voiceNotes.length} voice note${voiceNotes.length > 1 ? "s" : ""}` : "Voice Journal"}
+          </button>
+        </div>
+        <textarea
+          style={styles.notesInput}
+          placeholder='Type a note, or say "Hey Flashy, take a note"'
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          maxLength={500}
+          rows={2}
+        />
+        {notes.length > 0 && <span style={styles.notesCount}>{notes.length}/500</span>}
+
+        {/* ── FIX 4 & 5: Voice note journal panel ── */}
+        {showNoteJournal && (
+          <div style={styles.journalPanel}>
+            <p style={styles.journalTitle}>🎙️ Voice Note Journal</p>
+            {voiceNotes.length === 0 ? (
+              <p style={styles.journalEmpty}>No voice notes yet. Say "Hey Flashy, take a note" to add one.</p>
+            ) : (
+              voiceNotes.map((n, i) => (
+                <div key={i} style={styles.journalNote}>
+                  <div style={styles.journalNoteMeta}>
+                    <span style={styles.journalNoteStage}>{n.stage}</span>
+                    <span style={styles.journalNoteTime}>{new Date(n.timestamp).toLocaleTimeString()}</span>
+                  </div>
+                  <p style={styles.journalNoteText}>{n.text}</p>
+                  <button style={styles.journalReadBtn} onClick={() => speak(n.text)}>
+                    ▶ Read back
+                  </button>
+                </div>
+              ))
+            )}
+            <p style={styles.journalSaveNote}>Notes save with your flash log and can be downloaded from History.</p>
+          </div>
+        )}
+      </div>
+
+      {/* ── Emergency cool down overlay ── */}
+      {emergencyCooldown && (
+        <div style={styles.emergencyOverlay}>
+          <div style={styles.emergencyContent}>
+            <div style={styles.emergencySnowflake}>❄️</div>
+            <p style={styles.emergencyTitle}>EMERGENCY COOL DOWN</p>
+            <p style={styles.emergencySubtitle}>Ocean waves playing. Follow my breath.</p>
+            <p style={styles.emergencyBreatheLabel}>
+              {breathePhase === "inhale" && "Breathe in slowly..."}
+              {breathePhase === "hold" && "Hold gently..."}
+              {breathePhase === "exhale" && "Exhale slowly..."}
+            </p>
+            <div style={{
+              ...styles.emergencyBreatheCircle,
+              transform: breathePhase === "inhale" ? "scale(1.4)" : breathePhase === "exhale" ? "scale(0.7)" : "scale(1.15)",
+            }} />
+            <p style={styles.emergencyWaveNote}>🌊 Ocean waves playing · 4 rounds</p>
+            <button style={styles.emergencyExitBtn} onClick={() => { haptic(50); exitEmergencyCooldown(); }}>
+              I'm feeling better
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Support drawer ── */}
+      <div style={styles.supportArea}>
+        <p style={styles.supportTitle}>Need support?</p>
+        <div style={styles.supportBtns}>
+          <button style={styles.supportBtn} onClick={() => openDrawer("breathe")}>🫁 Breathe With Me</button>
+          <button style={styles.supportBtn} onClick={() => openDrawer("encourage")}>💪 Encourage Me</button>
+        </div>
+        <button style={styles.emergencyBtn} onClick={triggerEmergencyCooldown}>
+          ❄️ EMERGENCY COOL DOWN
+        </button>
+        {drawer && (
+          <div style={styles.drawerContent}>
+            {drawer === "breathe" && (
+              <div style={styles.breatheBox}>
+                <p style={styles.breatheLabel}>
+                  {breathePhase === "inhale" && "Breathe in slowly..."}
+                  {breathePhase === "hold" && "Hold gently..."}
+                  {breathePhase === "exhale" && "Exhale slowly..."}
+                </p>
+                <div style={{
+                  ...styles.breatheCircle,
+                  transform: breathePhase === "inhale" ? "scale(1.3)" : breathePhase === "exhale" ? "scale(0.8)" : "scale(1.15)",
+                }} />
+                <p style={styles.waveNote}>🌊 Ocean waves playing</p>
+              </div>
+            )}
+            {drawer === "encourage" && <p style={styles.randomLine}>&ldquo;{encourageLine}&rdquo;</p>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const styles: Record<string, React.CSSProperties> = {
+  container: {
+    minHeight: "100vh", maxWidth: "480px", margin: "0 auto",
+    display: "flex", flexDirection: "column",
+    fontFamily: "'Inter', sans-serif", transition: "background 1s ease", position: "relative",
+  },
+  ratingOverlay: {
+    position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)",
+    display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "24px",
+  },
+  ratingCard: {
+    background: "#1A1A1A", borderRadius: "28px", padding: "36px 28px",
+    width: "100%", maxWidth: "380px", textAlign: "center",
+    border: "1px solid rgba(255,107,53,0.4)", boxShadow: "0 20px 60px rgba(255,107,53,0.3)",
+  },
+  ratingEmoji: { fontSize: "48px", margin: "0 0 12px" },
+  ratingTitle: { color: "#FF6B35", fontSize: "22px", fontWeight: 900, margin: "0 0 6px", letterSpacing: "1px", textTransform: "uppercase" },
+  ratingSubtitle: { color: "rgba(255,255,255,0.65)", fontSize: "15px", margin: "0 0 28px" },
+  starsRow: { display: "flex", gap: "8px", justifyContent: "center", marginBottom: "20px" },
+  starBtn: {
+    background: "rgba(255,107,53,0.15)", border: "2px solid rgba(255,107,53,0.5)",
+    borderRadius: "14px", color: "#FF6B35", fontSize: "30px", fontWeight: 900,
+    width: "54px", height: "64px", cursor: "pointer",
+    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "2px", flexShrink: 0,
+  },
+  starLabel: { fontSize: "11px", fontWeight: 700, color: "rgba(255,107,53,0.8)" },
+  ratingHint: { color: "rgba(255,255,255,0.35)", fontSize: "12px", margin: "0 0 14px", lineHeight: 1.5 },
+  skipRatingBtn: {
+    background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)",
+    borderRadius: "100px", color: "rgba(255,255,255,0.5)", fontSize: "14px", fontWeight: 600,
+    padding: "10px 28px", cursor: "pointer", width: "100%",
+  },
+  header: {
+    display: "flex", justifyContent: "space-between", alignItems: "center",
+    padding: "18px 18px 0", gap: "8px",
+  },
+  appName: { color: "var(--color-accent)", fontWeight: 900, fontSize: "15px", letterSpacing: "2px", margin: 0, flexShrink: 0 },
+  headerRight: { display: "flex", alignItems: "center", gap: "8px" },
+  micPill: { display: "flex", alignItems: "center", gap: "5px", borderRadius: "100px", padding: "4px 9px 4px 7px", transition: "all 0.4s ease" },
+  micDot: { width: "6px", height: "6px", borderRadius: "50%", flexShrink: 0 },
+  micLabel: { color: "var(--color-text)", fontSize: "10px", fontWeight: 600, whiteSpace: "nowrap" },
+  liveLabel: {
+    background: "rgba(255,255,255,0.25)", color: "var(--color-text)", borderRadius: "20px",
+    padding: "3px 9px", fontSize: "10px", fontWeight: 700, letterSpacing: "2px", margin: 0, flexShrink: 0,
+  },
+  offlineBanner: {
+    display: "flex", alignItems: "center", gap: "8px",
+    margin: "6px 14px 0", background: "rgba(231,76,60,0.18)", border: "1px solid rgba(231,76,60,0.45)",
+    borderRadius: "10px", padding: "7px 12px",
+  },
+  offlineDot: { width: "7px", height: "7px", borderRadius: "50%", background: "#E74C3C", flexShrink: 0, animation: "micPulse 1.4s ease-in-out infinite" },
+  offlineText: { color: "#fff", fontSize: "11px", fontWeight: 600, flex: 1 },
+  micDeniedBanner: {
+    margin: "4px 14px 0", background: "rgba(255,100,100,0.2)", border: "1px solid rgba(255,100,100,0.4)",
+    borderRadius: "10px", padding: "7px 12px", color: "#fff", fontSize: "11px", fontWeight: 600, textAlign: "center",
+  },
+  voiceToast: {
+    margin: "6px 14px 0", background: "rgba(26,188,156,0.25)", border: "1px solid rgba(26,188,156,0.5)",
+    borderRadius: "10px", padding: "7px 12px", color: "var(--color-text)", fontSize: "11px", fontWeight: 600, textAlign: "center",
+  },
+  debugBar: {
+    display: "flex", alignItems: "center", gap: "8px",
+    margin: "4px 14px 0", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: "8px", padding: "3px 10px",
+  },
+  debugBarLabel: { color: "var(--color-text-muted)", fontSize: "9px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px", flexShrink: 0 },
+  debugBarWords: { color: "var(--color-text)", fontSize: "10px", fontWeight: 600, fontStyle: "italic", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 },
+  timerArea: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px", padding: "10px 18px 4px" },
+  timerLabel: { color: "var(--color-text-muted)", fontSize: "11px", fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", margin: 0 },
+  timer: { color: "var(--color-text)", fontSize: "58px", fontWeight: 900, margin: 0, letterSpacing: "-2px", textShadow: "0 4px 20px rgba(0,0,0,0.2)" },
+  peakRatingBadge: { color: "#FF6B35", fontSize: "12px", fontWeight: 700, letterSpacing: "1px" },
+  stageBadge: { borderRadius: "100px", padding: "7px 20px", fontSize: "11px", fontWeight: 800, letterSpacing: "1px", textTransform: "uppercase" },
+  graphPanel: { padding: "4px 14px 0" },
+  stageButtons: { display: "flex", flexDirection: "column", gap: "6px", padding: "8px 14px 8px" },
+  stageBtn: {
+    border: "none", borderRadius: "12px", fontSize: "13px", padding: "12px 16px",
+    cursor: "pointer", letterSpacing: "0.5px", textTransform: "uppercase",
+    textAlign: "left", transition: "all 0.2s ease", display: "flex", alignItems: "center",
+  },
+  // Notes
+  notesArea: { position: "relative", padding: "0 14px 8px" },
+  notesHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" },
+  notesHeaderLabel: { color: "rgba(255,255,255,0.6)", fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px" },
+  notesJournalBtn: {
+    background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)",
+    borderRadius: "100px", color: "rgba(255,255,255,0.7)", fontSize: "10px", fontWeight: 600,
+    padding: "4px 10px", cursor: "pointer",
+  },
+  notesInput: {
+    width: "100%", boxSizing: "border-box", background: "rgba(0,0,0,0.25)",
+    border: "1px solid rgba(255,255,255,0.15)", borderRadius: "14px",
+    color: "var(--color-text)", fontSize: "13px", fontWeight: 500,
+    fontFamily: "'Inter', sans-serif", padding: "12px 14px",
+    resize: "none", outline: "none", lineHeight: 1.5, transition: "border-color 0.2s ease",
+  },
+  notesCount: { position: "absolute", bottom: "18px", right: "24px", color: "rgba(255,255,255,0.25)", fontSize: "10px", fontWeight: 600, pointerEvents: "none" },
+  // Voice journal panel
+  journalPanel: {
+    marginTop: "10px", background: "rgba(0,0,0,0.3)", borderRadius: "14px",
+    border: "1px solid rgba(255,255,255,0.1)", padding: "12px",
+  },
+  journalTitle: { color: "rgba(255,255,255,0.7)", fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px", margin: "0 0 10px" },
+  journalEmpty: { color: "rgba(255,255,255,0.4)", fontSize: "11px", fontStyle: "italic", textAlign: "center", margin: "8px 0" },
+  journalNote: { background: "rgba(255,255,255,0.06)", borderRadius: "10px", padding: "10px", marginBottom: "8px" },
+  journalNoteMeta: { display: "flex", justifyContent: "space-between", marginBottom: "4px" },
+  journalNoteStage: { color: "#FF6B35", fontSize: "9px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px" },
+  journalNoteTime: { color: "rgba(255,255,255,0.35)", fontSize: "9px" },
+  journalNoteText: { color: "#fff", fontSize: "12px", margin: "0 0 8px", lineHeight: 1.5 },
+  journalReadBtn: {
+    background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)",
+    borderRadius: "100px", color: "rgba(255,255,255,0.7)", fontSize: "10px",
+    padding: "4px 12px", cursor: "pointer",
+  },
+  journalSaveNote: { color: "rgba(255,255,255,0.3)", fontSize: "9px", fontStyle: "italic", textAlign: "center", margin: "8px 0 0" },
+  // Support
+  supportArea: { background: "rgba(0,0,0,0.25)", backdropFilter: "blur(10px)", borderRadius: "24px 24px 0 0", padding: "14px" },
+  supportTitle: { color: "var(--color-text-muted)", fontSize: "10px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "1px", margin: "0 0 8px", textAlign: "center" },
+  supportBtns: { display: "flex", gap: "8px", justifyContent: "center", flexWrap: "wrap" },
+  supportBtn: { background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "100px", color: "var(--color-text)", fontSize: "12px", fontWeight: 600, padding: "9px 16px", cursor: "pointer" },
+  drawerContent: { marginTop: "10px", padding: "12px", background: "rgba(0,0,0,0.2)", borderRadius: "12px" },
+  breatheBox: { display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" },
+  breatheLabel: { color: "var(--color-text)", fontSize: "17px", fontWeight: 700, margin: 0, textAlign: "center" },
+  breatheCircle: { width: "60px", height: "60px", borderRadius: "50%", background: "rgba(255,255,255,0.2)", border: "3px solid rgba(255,255,255,0.5)", transition: "transform 1s ease-in-out" },
+  waveNote: { color: "rgba(255,255,255,0.4)", fontSize: "11px", margin: 0, fontStyle: "italic" },
+  randomLine: { color: "var(--color-text)", fontSize: "14px", fontWeight: 600, fontStyle: "italic", textAlign: "center", lineHeight: 1.5, margin: 0 },
+  emergencyBtn: {
+    marginTop: "10px", width: "100%", boxSizing: "border-box",
+    background: "linear-gradient(135deg, #87CEEB 0%, #4A90D9 100%)",
+    border: "2px solid rgba(135,206,235,0.9)", borderRadius: "100px", color: "#0A2540",
+    fontSize: "15px", fontWeight: 900, padding: "15px 24px", cursor: "pointer",
+    letterSpacing: "1.5px", textTransform: "uppercase",
+    boxShadow: "0 0 24px rgba(135,206,235,0.5), 0 4px 20px rgba(0,0,0,0.3)",
+  },
+  emergencyOverlay: {
+    position: "fixed", inset: 0, zIndex: 300,
+    background: "rgba(135,206,235,0.94)", backdropFilter: "blur(8px)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    animation: "emergencyFadeIn 0.4s ease",
+  },
+  emergencyContent: { display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", padding: "48px 32px", textAlign: "center", maxWidth: "380px", width: "100%" },
+  emergencySnowflake: { fontSize: "80px", lineHeight: 1, filter: "drop-shadow(0 0 16px rgba(255,255,255,0.9))", animation: "pulse 2s infinite" },
+  emergencyTitle: { color: "#0A2540", fontSize: "20px", fontWeight: 900, letterSpacing: "2.5px", textTransform: "uppercase", margin: 0 },
+  emergencySubtitle: { color: "rgba(10,37,64,0.65)", fontSize: "14px", margin: 0, lineHeight: 1.5 },
+  emergencyBreatheLabel: { color: "#0A2540", fontSize: "24px", fontWeight: 800, margin: 0, minHeight: "32px" },
+  emergencyBreatheCircle: { width: "100px", height: "100px", borderRadius: "50%", background: "rgba(255,255,255,0.55)", border: "4px solid rgba(10,37,64,0.35)", transition: "transform 1s ease-in-out", boxShadow: "0 0 30px rgba(255,255,255,0.6)" },
+  emergencyWaveNote: { color: "rgba(10,37,64,0.5)", fontSize: "13px", fontStyle: "italic", margin: 0 },
+  emergencyExitBtn: { marginTop: "8px", background: "rgba(10,37,64,0.85)", border: "none", borderRadius: "100px", color: "#fff", fontSize: "17px", fontWeight: 700, padding: "18px 44px", cursor: "pointer", boxShadow: "0 4px 20px rgba(10,37,64,0.3)" },
+};

@@ -1,0 +1,1937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#080C14">
+<title>FLASHYAF™ — Flashy Beta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+
+<!-- Firebase v9 modular SDK -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+  import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+  import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+  // ── FIREBASE CONFIG ── replace with your real config before deploying ──
+  const firebaseConfig = {
+    apiKey: "AIzaSyD6R4Hn-AFXYcvLYje63Avfh4rAHhkrtl8",
+    authDomain: "flashyaf-ae373.firebaseapp.com",
+    projectId: "flashyaf-ae373",
+    storageBucket: "flashyaf-ae373.firebasestorage.app",
+    messagingSenderId: "299522622751",
+    appId: "1:299522622751:web:3490c29b6efb220a7c9c2a",
+    measurementId: "G-K19X1N6699"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // Sign in anonymously so Firestore rules pass
+  signInAnonymously(auth).catch(() => {});
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      window.__FAF_UID = user.uid;
+      window.__FAF_DB  = db;
+      window.__FAF_READY = true;
+      document.dispatchEvent(new Event('fafReady'));
+    }
+  });
+
+  // ── FIRESTORE HELPERS ──
+  window.saveFlashSession = async (sessionData) => {
+    if (!window.__FAF_READY) return;
+    try {
+      await addDoc(collection(db, 'flashSessions'), {
+        uid: window.__FAF_UID,
+        ...sessionData,
+        createdAt: serverTimestamp()
+      });
+    } catch(e) { console.warn('Firestore save failed:', e); }
+  };
+
+  window.saveMemoryNote = async (noteData) => {
+    if (!window.__FAF_READY) return;
+    try {
+      await addDoc(collection(db, 'memoryVault'), {
+        uid: window.__FAF_UID,
+        ...noteData,
+        createdAt: serverTimestamp()
+      });
+    } catch(e) { console.warn('Firestore note save failed:', e); }
+  };
+
+  window.getRecentSessions = async (count = 10) => {
+    if (!window.__FAF_READY) return [];
+    try {
+      const q = query(
+        collection(db, 'flashSessions'),
+        where('uid','==', window.__FAF_UID),
+        orderBy('createdAt','desc'),
+        limit(count)
+      );
+      const snap = await getDocs(q);
+      return snap.docs.map(d => d.data());
+    } catch(e) { return []; }
+  };
+</script>
+
+<style>
+/* ═══════════════════════════════════════════════
+   FLASHYAF™ DESIGN SYSTEM — FIRE TO ICE
+   v1c — Claude build — no-beep architecture
+═══════════════════════════════════════════════ */
+:root {
+  --fire-deep:   #8B0000;
+  --fire-red:    #C0392B;
+  --fire-orange: #E67E22;
+  --fire-gold:   #F39C12;
+  --navy-deep:   #080C14;
+  --navy:        #0D1520;
+  --navy-card:   #111827;
+  --navy-mid:    #1E3A5F;
+  --ice-teal:    #0D9488;
+  --ice-blue:    #0EA5E9;
+  --ice-light:   #7DD3FC;
+  --white:       #FFFFFF;
+  --off-white:   #F0F6FF;
+  --gray:        #94A3B8;
+  --card-border: rgba(255,255,255,0.08);
+  --card-bg:     rgba(255,255,255,0.04);
+  --danger:      #EF4444;
+  --success:     #22C55E;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html { height:100%; overflow:hidden; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--navy-deep);
+  color: var(--white);
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+}
+
+/* ── SCREENS ── */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+  padding-bottom: 100px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+.screen.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ── SPLASH ── */
+#screen-splash {
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(ellipse at 50% 40%, #3D0000 0%, var(--navy-deep) 70%);
+}
+.splash-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(56px, 18vw, 96px);
+  letter-spacing: 4px;
+  background: linear-gradient(135deg, var(--fire-gold), var(--fire-orange), var(--ice-teal));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: logoPulse 2s ease-in-out infinite alternate;
+}
+@keyframes logoPulse {
+  from { filter: drop-shadow(0 0 20px rgba(243,156,18,0.4)); }
+  to   { filter: drop-shadow(0 0 40px rgba(243,156,18,0.8)); }
+}
+.splash-tagline {
+  color: var(--gray);
+  font-size: 14px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+.splash-sub {
+  color: var(--ice-teal);
+  font-size: 12px;
+  margin-top: 24px;
+  letter-spacing: 1px;
+}
+
+/* ── HEADER ── */
+.app-header {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 8px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--navy-deep);
+}
+.header-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 2px;
+  background: linear-gradient(90deg, var(--fire-gold), var(--ice-teal));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.header-right { display: flex; align-items: center; gap: 10px; }
+
+/* ── MIC STATUS BADGE ── */
+.mic-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--card-border);
+  color: var(--gray);
+}
+.mic-badge.listening {
+  background: rgba(13,148,136,0.15);
+  border-color: rgba(13,148,136,0.4);
+  color: var(--ice-teal);
+}
+.mic-badge.command-window {
+  background: rgba(243,156,18,0.15);
+  border-color: rgba(243,156,18,0.5);
+  color: var(--fire-gold);
+  animation: commandPulse 1s ease-in-out infinite alternate;
+}
+.mic-badge.sleeping {
+  background: rgba(148,163,184,0.08);
+  border-color: rgba(148,163,184,0.15);
+  color: var(--gray);
+}
+@keyframes commandPulse {
+  from { box-shadow: 0 0 0 0 rgba(243,156,18,0.3); }
+  to   { box-shadow: 0 0 0 6px rgba(243,156,18,0); }
+}
+.mic-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.mic-badge.listening .mic-dot {
+  animation: blink 1.2s ease-in-out infinite;
+}
+@keyframes blink {
+  0%,100% { opacity: 1; }
+  50%      { opacity: 0.3; }
+}
+
+/* ── LANG TOGGLE ── */
+.lang-btn {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  color: var(--gray);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+}
+.lang-btn:active { opacity: 0.7; }
+
+/* ── NAV ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(8,12,20,0.95);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--card-border);
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0 max(10px, env(safe-area-inset-bottom));
+  z-index: 100;
+}
+.nav-item {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 3px;
+  padding: 4px 16px;
+  cursor: pointer;
+  opacity: 0.45;
+  transition: opacity 0.2s;
+  min-width: 60px;
+}
+.nav-item.active { opacity: 1; }
+.nav-item.active .nav-label { color: var(--fire-gold); }
+.nav-icon { font-size: 20px; }
+.nav-label { font-size: 10px; font-weight: 600; color: var(--gray); letter-spacing: 0.5px; text-transform: uppercase; }
+
+/* ── CONTENT AREA ── */
+.content {
+  width: 100%;
+  max-width: 480px;
+  padding: 12px 16px;
+  flex: 1;
+}
+
+/* ── CARDS ── */
+.card {
+  background: var(--navy-card);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 14px;
+}
+.card-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-bottom: 12px;
+}
+
+/* ── HOME SCREEN ── */
+.flashy-greeting {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(22px, 6vw, 28px);
+  line-height: 1.3;
+  color: var(--white);
+  margin-bottom: 6px;
+}
+.flashy-sub {
+  font-size: 13px;
+  color: var(--gray);
+  margin-bottom: 20px;
+}
+
+/* ── FAB — main action button ── */
+.fab-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 8px 0 20px;
+}
+.fab {
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  border: none;
+  background: radial-gradient(circle at 35% 35%, var(--fire-orange), var(--fire-red), var(--fire-deep));
+  box-shadow: 0 0 0 0 rgba(224,114,34,0.4);
+  cursor: pointer;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 4px;
+  transition: transform 0.15s ease;
+  position: relative;
+  overflow: hidden;
+}
+.fab::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 25%, rgba(255,255,255,0.25), transparent 60%);
+}
+.fab:active { transform: scale(0.94); }
+.fab.flash-active {
+  background: radial-gradient(circle at 35% 35%, var(--ice-blue), var(--ice-teal));
+  animation: fabPulse 1.5s ease-in-out infinite;
+}
+.fab.command-glow {
+  box-shadow: 0 0 0 8px rgba(243,156,18,0.25), 0 0 0 16px rgba(243,156,18,0.1);
+}
+@keyframes fabPulse {
+  0%,100% { box-shadow: 0 0 30px rgba(14,165,233,0.5); }
+  50%      { box-shadow: 0 0 60px rgba(14,165,233,0.9); }
+}
+.fab-icon { font-size: 36px; z-index: 1; }
+.fab-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.85); z-index: 1; }
+
+.fab-hint {
+  font-size: 12px;
+  color: var(--gray);
+  margin-top: 10px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* ── STAGE BUTTONS ── */
+.stage-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.stage-btn {
+  padding: 16px 12px;
+  border-radius: 14px;
+  border: 2px solid transparent;
+  background: var(--card-bg);
+  color: var(--white);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  line-height: 1.3;
+}
+.stage-btn:active { transform: scale(0.96); }
+.stage-btn.s0  { border-color: rgba(243,156,18,0.4); }
+.stage-btn.s1  { border-color: rgba(192,57,43,0.5); }
+.stage-btn.s2  { border-color: rgba(230,126,34,0.5); }
+.stage-btn.s3  { border-color: rgba(14,165,233,0.4); }
+.stage-btn.s4  { border-color: rgba(13,148,136,0.4); }
+.stage-btn.s5  { border-color: rgba(125,211,252,0.4); }
+.stage-btn.active { background: rgba(243,156,18,0.15); border-color: var(--fire-gold); }
+.stage-btn:disabled { opacity: 0.35; cursor: default; }
+.stage-emoji { font-size: 22px; display: block; margin-bottom: 4px; }
+.stage-name  { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+.stage-desc  { font-size: 10px; color: var(--gray); margin-top: 2px; }
+
+/* ── THERMAL CURVE ── */
+.thermal-bar {
+  height: 8px;
+  border-radius: 100px;
+  background: linear-gradient(90deg, var(--fire-gold), var(--fire-orange), var(--fire-red), var(--ice-blue), var(--ice-teal));
+  position: relative;
+  margin: 12px 0 6px;
+  overflow: hidden;
+}
+.thermal-progress {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  border-radius: 100px;
+  background: rgba(255,255,255,0.3);
+  transition: width 0.8s ease;
+  backdrop-filter: blur(2px);
+}
+.thermal-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: var(--gray);
+  letter-spacing: 0.3px;
+}
+
+/* ── FLASHY SPEECH BUBBLE ── */
+.flashy-bubble {
+  background: linear-gradient(135deg, rgba(13,148,136,0.12), rgba(14,165,233,0.08));
+  border: 1px solid rgba(13,148,136,0.25);
+  border-radius: 18px 18px 18px 4px;
+  padding: 14px 16px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--off-white);
+  margin-bottom: 14px;
+  position: relative;
+  min-height: 52px;
+  transition: all 0.4s ease;
+}
+.flashy-bubble::before {
+  content: '🔥';
+  position: absolute;
+  top: -10px; left: 14px;
+  font-size: 18px;
+}
+.flashy-bubble.cooling {
+  background: linear-gradient(135deg, rgba(14,165,233,0.12), rgba(125,211,252,0.08));
+  border-color: rgba(14,165,233,0.3);
+}
+
+/* ── MEMORY VAULT ── */
+.vault-record-btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 14px;
+  border: 2px dashed rgba(243,156,18,0.35);
+  background: transparent;
+  color: var(--fire-gold);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s;
+  margin-top: 6px;
+}
+.vault-record-btn:active { background: rgba(243,156,18,0.08); }
+.vault-record-btn.recording {
+  border-style: solid;
+  border-color: var(--danger);
+  color: var(--danger);
+  animation: recordPulse 1s ease-in-out infinite alternate;
+}
+@keyframes recordPulse {
+  from { box-shadow: 0 0 0 0 rgba(239,68,68,0.3); }
+  to   { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+}
+
+.vault-note {
+  background: rgba(243,156,18,0.06);
+  border: 1px solid rgba(243,156,18,0.15);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-top: 8px;
+}
+.vault-note-text { font-size: 13px; color: var(--off-white); line-height: 1.5; }
+.vault-note-time { font-size: 10px; color: var(--gray); margin-top: 4px; }
+
+/* ── CBT PANEL ── */
+.cbt-panel {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+.cbt-panel.visible { display: flex; }
+.cbt-option {
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--white);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s;
+}
+.cbt-option:active { background: rgba(13,148,136,0.12); border-color: var(--ice-teal); }
+.cbt-icon { font-size: 22px; }
+
+/* ── BREATHING GUIDE ── */
+.breathing-guide {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  text-align: center;
+}
+.breathing-guide.visible { display: flex; }
+.breath-circle {
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(13,148,136,0.4), rgba(14,165,233,0.1));
+  border: 2px solid rgba(13,148,136,0.4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: var(--ice-teal); font-weight: 700;
+  margin-bottom: 14px;
+}
+.breath-circle.inhale {
+  animation: breatheIn 4s ease-in-out forwards;
+}
+.breath-circle.exhale {
+  animation: breatheOut 6s ease-in-out forwards;
+}
+@keyframes breatheIn {
+  from { transform: scale(1); }
+  to   { transform: scale(1.4); }
+}
+@keyframes breatheOut {
+  from { transform: scale(1.4); }
+  to   { transform: scale(1); }
+}
+.breath-instruction {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ice-teal);
+  margin-bottom: 6px;
+}
+.breath-count { font-size: 14px; color: var(--gray); }
+
+/* ── SESSION TIMER ── */
+.session-timer {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  color: var(--fire-gold);
+  text-align: center;
+  letter-spacing: 3px;
+  line-height: 1;
+}
+.session-stage-label {
+  text-align: center;
+  font-size: 13px;
+  color: var(--gray);
+  margin-top: 4px;
+}
+
+/* ── HISTORY SCREEN ── */
+.history-item {
+  background: var(--navy-card);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.history-date { font-size: 11px; color: var(--gray); margin-bottom: 6px; }
+.history-stages { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+.history-stage-pip {
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(243,156,18,0.12);
+  color: var(--fire-gold);
+}
+.history-duration { font-size: 12px; color: var(--ice-teal); font-weight: 600; }
+
+/* ── VAULT SCREEN ── */
+.vault-item {
+  background: var(--navy-card);
+  border: 1px solid rgba(243,156,18,0.15);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.vault-item-text { font-size: 14px; color: var(--off-white); line-height: 1.5; margin-bottom: 6px; }
+.vault-item-meta { font-size: 11px; color: var(--gray); }
+.vault-item-stage { display: inline-block; padding: 2px 8px; border-radius: 6px; background: rgba(243,156,18,0.12); color: var(--fire-gold); font-size: 10px; font-weight: 700; margin-bottom: 6px; }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--gray);
+}
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-text { font-size: 14px; line-height: 1.6; }
+
+/* ── SETTINGS / PROFILE ── */
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--card-border);
+}
+.setting-row:last-child { border-bottom: none; }
+.setting-label { font-size: 14px; color: var(--white); }
+.setting-sub { font-size: 12px; color: var(--gray); }
+.toggle {
+  width: 44px; height: 24px;
+  border-radius: 100px;
+  background: rgba(255,255,255,0.12);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.3s;
+  flex-shrink: 0;
+}
+.toggle.on { background: var(--ice-teal); }
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: white;
+  transition: left 0.3s;
+}
+.toggle.on::after { left: 23px; }
+
+/* ── FORECAST PANEL ── */
+.forecast-card {
+  background: var(--navy-card);
+  border: 1px solid rgba(243,156,18,0.25);
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 14px;
+  position: relative;
+}
+.forecast-badge {
+  position: absolute;
+  top: -10px; right: 16px;
+  background: var(--fire-gold);
+  color: var(--navy-deep);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  padding: 3px 10px;
+  border-radius: 100px;
+}
+.forecast-countdown {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 52px;
+  color: var(--fire-gold);
+  letter-spacing: 3px;
+  text-align: center;
+  line-height: 1;
+  animation: countdownGlow 2s ease-in-out infinite alternate;
+}
+@keyframes countdownGlow {
+  from { text-shadow: 0 0 10px rgba(243,156,18,0.3); }
+  to   { text-shadow: 0 0 30px rgba(243,156,18,0.8); }
+}
+.forecast-label { text-align: center; font-size: 12px; color: var(--gray); margin-top: 4px; }
+.forecast-confidence {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.conf-high { color: var(--ice-teal); }
+.conf-mod  { color: var(--fire-orange); }
+.forecast-disclaimer { font-size: 10px; color: var(--gray); text-align: center; margin-top: 8px; font-style: italic; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  top: 70px; left: 50%; transform: translateX(-50%);
+  background: rgba(13,21,32,0.95);
+  border: 1px solid var(--ice-teal);
+  color: var(--white);
+  padding: 10px 20px;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  backdrop-filter: blur(10px);
+}
+.toast.show { opacity: 1; }
+
+/* ── COMMAND OVERLAY ── */
+.command-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8,12,20,0.9);
+  backdrop-filter: blur(8px);
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.command-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+.command-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px;
+  letter-spacing: 3px;
+  color: var(--fire-gold);
+  margin-bottom: 8px;
+  text-align: center;
+}
+.command-subtitle {
+  font-size: 14px;
+  color: var(--gray);
+  margin-bottom: 32px;
+  text-align: center;
+}
+.command-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 340px;
+}
+.command-chip {
+  padding: 14px 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(243,156,18,0.3);
+  background: rgba(243,156,18,0.06);
+  color: var(--white);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.command-chip:active { background: rgba(243,156,18,0.15); }
+.command-timer {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 64px;
+  color: var(--fire-gold);
+  margin-top: 24px;
+  letter-spacing: 4px;
+}
+.command-close {
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--gray);
+  cursor: pointer;
+  padding: 8px;
+}
+
+/* ── UTILITIES ── */
+.pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.pill-teal  { background: rgba(13,148,136,0.15); color: var(--ice-teal); }
+.pill-gold  { background: rgba(243,156,18,0.15); color: var(--fire-gold); }
+.pill-red   { background: rgba(192,57,43,0.15);  color: #F87171; }
+
+.btn-primary {
+  width: 100%;
+  padding: 16px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(135deg, var(--ice-teal), var(--ice-blue));
+  color: var(--white);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: opacity 0.2s;
+}
+.btn-primary:active { opacity: 0.85; }
+.btn-secondary {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--white);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.btn-secondary:active { opacity: 0.7; }
+
+.section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 2px;
+  color: var(--white);
+  margin-bottom: 14px;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+</style>
+</head>
+
+<body>
+
+<!-- ══════════════════════════════════════════
+     SPLASH SCREEN
+══════════════════════════════════════════ -->
+<div id="screen-splash" class="screen active">
+  <div class="splash-logo">FLASHYAF™</div>
+  <div class="splash-tagline">Real-Time Menopause Support</div>
+  <div class="splash-sub" id="splash-status">Waking up Flashy…</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     HOME SCREEN
+══════════════════════════════════════════ -->
+<div id="screen-home" class="screen">
+  <div class="app-header">
+    <div class="header-logo">FLASHYAF™</div>
+    <div class="header-right">
+      <button class="lang-btn" id="langBtn" onclick="toggleLang()">ES</button>
+      <div class="mic-badge sleeping" id="micBadge">
+        <div class="mic-dot"></div>
+        <span id="micLabel">MIC SLEEPING</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Flashy greeting -->
+    <div class="flashy-bubble" id="flashyBubble">
+      Hey girlfriend! Say <strong>"Hey Flashy"</strong> or tap the button below when you feel it coming. I'm here. 🔥
+    </div>
+
+    <!-- FAB -->
+    <div class="fab-wrap">
+      <button class="fab" id="mainFab" onclick="handleFabTap()">
+        <span class="fab-icon" id="fabIcon">🔥</span>
+        <span class="fab-label" id="fabLabel">I FEEL IT</span>
+      </button>
+      <div class="fab-hint" id="fabHint">Tap when you feel a flash coming<br>or say "Hey Flashy"</div>
+    </div>
+
+    <!-- Stage buttons — hidden until flash starts -->
+    <div id="stagePanel" style="display:none;">
+      <div class="card">
+        <div class="card-title" id="stagePanelTitle">THERMAL CURVE™ — TAP YOUR STAGE</div>
+        <!-- Thermal bar -->
+        <div class="thermal-bar">
+          <div class="thermal-progress" id="thermalProgress" style="width:0%"></div>
+        </div>
+        <div class="thermal-labels">
+          <span>PRE-FLASH</span>
+          <span>PEAK</span>
+          <span>COOL DOWN</span>
+          <span>NORMAL</span>
+        </div>
+        <!-- Timer -->
+        <div style="margin:16px 0 8px;">
+          <div class="session-timer" id="sessionTimer">0:00</div>
+          <div class="session-stage-label" id="sessionStageLabel">Flash in progress</div>
+        </div>
+        <!-- Stage grid -->
+        <div class="stage-grid" id="stageGrid">
+          <button class="stage-btn s1" id="stageBtn1" onclick="logStage(1)">
+            <span class="stage-emoji">🌡️</span>
+            <div class="stage-name" data-en="START" data-es="INICIO">START</div>
+            <div class="stage-desc" data-en="Flash beginning" data-es="Inicio del flash">Flash beginning</div>
+          </button>
+          <button class="stage-btn s2" id="stageBtn2" onclick="logStage(2)">
+            <span class="stage-emoji">🔥</span>
+            <div class="stage-name" data-en="PEAK" data-es="PICO">PEAK</div>
+            <div class="stage-desc" data-en="Hottest moment" data-es="Momento más intenso">Hottest moment</div>
+          </button>
+          <button class="stage-btn s3" id="stageBtn3" onclick="logStage(3)">
+            <span class="stage-emoji">🌊</span>
+            <div class="stage-name" data-en="COOL DOWN" data-es="ENFRIANDO">COOL DOWN</div>
+            <div class="stage-desc" data-en="Sweating, fading" data-es="Sudando, calmando">Sweating, fading</div>
+          </button>
+          <button class="stage-btn s4" id="stageBtn4" onclick="logStage(4)">
+            <span class="stage-emoji">❄️</span>
+            <div class="stage-name" data-en="FLASH OVER" data-es="FLASH TERMINADO">FLASH OVER</div>
+            <div class="stage-desc" data-en="Heat gone" data-es="Calor ya pasó">Heat gone</div>
+          </button>
+          <button class="stage-btn s5" onclick="logStage(5)" style="grid-column:1/-1;">
+            <span class="stage-emoji">✨</span>
+            <div class="stage-name" data-en="BACK TO NORMAL" data-es="DE VUELTA A NORMAL">BACK TO NORMAL</div>
+            <div class="stage-desc" data-en="Full recovery — unique to FLASHYAF™" data-es="Recuperación completa">Full recovery — unique to FLASHYAF™</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Memory Vault during flash -->
+      <div class="card">
+        <div class="card-title">🗝️ MEMORY VAULT™ — CAPTURE NOW</div>
+        <div style="font-size:13px; color:var(--gray); margin-bottom:12px;" id="vaultDesc">
+          Brain fog? Tap to dictate a note. Plays back after the flash.
+        </div>
+        <button class="vault-record-btn" id="vaultRecordBtn" onclick="toggleVaultRecording()">
+          <span id="vaultBtnIcon">🎙️</span>
+          <span id="vaultBtnLabel">Record a voice note</span>
+        </button>
+        <div id="vaultLiveNote" style="display:none;" class="vault-note">
+          <div class="vault-note-text" id="vaultLiveText">Listening…</div>
+        </div>
+      </div>
+
+      <!-- CBT Support -->
+      <div class="card">
+        <div class="card-title">💙 CBT-INFORMED SUPPORT™</div>
+        <div class="cbt-panel visible" id="cbtMenu">
+          <div class="cbt-option" onclick="startBreathing()">
+            <span class="cbt-icon">🫁</span>
+            <div>
+              <div style="font-size:13px;font-weight:700;" data-en="Guided Breathing" data-es="Respiración guiada">Guided Breathing</div>
+              <div style="font-size:11px;color:var(--gray);">4-count inhale • 6-count exhale</div>
+            </div>
+          </div>
+          <div class="cbt-option" onclick="showAffirmation()">
+            <span class="cbt-icon">💪</span>
+            <div>
+              <div style="font-size:13px;font-weight:700;" data-en="Power Affirmation" data-es="Afirmación de poder">Power Affirmation</div>
+              <div style="font-size:11px;color:var(--gray);">You've survived 100% of these</div>
+            </div>
+          </div>
+          <div class="cbt-option" onclick="showHumor()">
+            <span class="cbt-icon">😂</span>
+            <div>
+              <div style="font-size:13px;font-weight:700;" data-en="Flashy's Humor Bank™" data-es="Banco de humor de Flashy">Flashy's Humor Bank™</div>
+              <div style="font-size:11px;color:var(--gray);">Because sometimes you just need to laugh</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Breathing guide -->
+        <div class="breathing-guide" id="breathingGuide">
+          <div class="breath-circle" id="breathCircle">Breathe</div>
+          <div class="breath-instruction" id="breathInstruction">INHALE</div>
+          <div class="breath-count" id="breathCount">4 seconds</div>
+          <button class="btn-secondary" style="margin-top:16px; width:auto; padding:10px 24px;" onclick="stopBreathing()">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flash Forecast (shown after session complete) -->
+    <div id="forecastPanel" style="display:none;">
+      <div class="forecast-card">
+        <div class="forecast-badge">BETA — FLASH FORECAST™</div>
+        <div class="card-title" style="margin-top:8px;">NEXT FLASH WINDOW</div>
+        <div class="forecast-countdown" id="forecastCountdown">--:--</div>
+        <div class="forecast-label" id="forecastLabel">Calculating your pattern…</div>
+        <div class="forecast-confidence" id="forecastConfidence"></div>
+        <div class="forecast-disclaimer">Pattern-based wellness estimate. Not medical advice.</div>
+      </div>
+    </div>
+
+    <!-- Stats row (always visible) -->
+    <div class="card" id="statsCard">
+      <div class="card-title">TODAY</div>
+      <div style="display:flex; gap:16px; justify-content:space-around; text-align:center;">
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--fire-gold);" id="statFlashes">0</div>
+          <div style="font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:1px;" data-en="Flashes" data-es="Flashes">Flashes</div>
+        </div>
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--ice-teal);" id="statAvgDuration">--</div>
+          <div style="font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:1px;" data-en="Avg Min" data-es="Min Prom">Avg Min</div>
+        </div>
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--ice-blue);" id="statNotes">0</div>
+          <div style="font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:1px;" data-en="Vault Notes" data-es="Notas">Vault Notes</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     HISTORY SCREEN
+══════════════════════════════════════════ -->
+<div id="screen-history" class="screen">
+  <div class="app-header">
+    <div class="header-logo">HISTORY</div>
+  </div>
+  <div class="content">
+    <div id="historyList">
+      <div class="empty-state">
+        <div class="empty-icon">📊</div>
+        <div class="empty-text">No flash sessions yet.<br>Complete your first flash to see your Thermal Curve™ data here.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     VAULT SCREEN
+══════════════════════════════════════════ -->
+<div id="screen-vault" class="screen">
+  <div class="app-header">
+    <div class="header-logo">MEMORY VAULT™</div>
+  </div>
+  <div class="content">
+    <div style="font-size:13px;color:var(--gray);margin-bottom:16px;line-height:1.6;">
+      Everything you captured during brain fog. Your words, your voice, your truth.
+    </div>
+    <div id="vaultList">
+      <div class="empty-state">
+        <div class="empty-icon">🗝️</div>
+        <div class="empty-text">Your vault is empty.<br>Record a voice note during a flash — it'll be saved here for review.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SETTINGS SCREEN
+══════════════════════════════════════════ -->
+<div id="screen-settings" class="screen">
+  <div class="app-header">
+    <div class="header-logo">SETTINGS</div>
+  </div>
+  <div class="content">
+    <div class="card">
+      <div class="card-title">VOICE & MIC</div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Voice Commands</div>
+          <div class="setting-sub">Say "Hey Flashy" to activate</div>
+        </div>
+        <div class="toggle on" id="voiceToggle" onclick="toggleSetting('voice')"></div>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Flashy Voice Responses</div>
+          <div class="setting-sub">Spoken feedback during flash</div>
+        </div>
+        <div class="toggle on" id="ttsToggle" onclick="toggleSetting('tts')"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">APP INFO</div>
+      <div class="setting-row">
+        <div class="setting-label">Version</div>
+        <div style="font-size:13px;color:var(--gray);">v1c Beta — Pioneer</div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Build</div>
+        <div style="font-size:13px;color:var(--gray);">FLASHYAF™ by BROWNWORKS4U2 LLC</div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Founder</div>
+        <div style="font-size:13px;color:var(--gray);">Iva Marie Brown-Ziegler</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">PIONEER BETA</div>
+      <div style="font-size:13px;color:var(--gray);line-height:1.7;">
+        You're one of Flashy's first. Your data is helping validate the Triple-Point Mapping™ system and build the prediction engine. Thank you for trusting us with your body. 🔥❄️
+      </div>
+    </div>
+    <button class="btn-secondary" onclick="clearTodayData()" style="margin-top:8px;">Clear Today's Data</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     COMMAND OVERLAY — "Hey Flashy" window
+══════════════════════════════════════════ -->
+<div class="command-overlay" id="commandOverlay">
+  <div class="command-title">HEY GIRLFRIEND 🔥</div>
+  <div class="command-subtitle">I'm here. What do you need?<br><span style="font-size:12px;color:var(--gray);">Tap a command or just say it</span></div>
+  <div class="command-list">
+    <div class="command-chip" onclick="handleVoiceCommand('start')">🌡️ I feel it coming — START</div>
+    <div class="command-chip" onclick="handleVoiceCommand('peak')">🔥 PEAK</div>
+    <div class="command-chip" onclick="handleVoiceCommand('cooling')">🌊 Cooling Down</div>
+    <div class="command-chip" onclick="handleVoiceCommand('over')">❄️ Flash Over</div>
+    <div class="command-chip" onclick="handleVoiceCommand('normal')">✨ Back to Normal</div>
+    <div class="command-chip" onclick="handleVoiceCommand('save')">🗝️ Save a note</div>
+    <div class="command-chip" onclick="handleVoiceCommand('breathe')">🫁 Help me breathe</div>
+    <div class="command-chip" onclick="handleVoiceCommand('joke')">😂 Tell me something funny</div>
+  </div>
+  <div class="command-timer" id="commandTimer">30</div>
+  <div class="command-close" onclick="closeCommandOverlay()">✕ Never mind</div>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<!-- Bottom nav -->
+<nav class="bottom-nav">
+  <div class="nav-item active" id="nav-home" onclick="showScreen('home')">
+    <div class="nav-icon">🔥</div>
+    <div class="nav-label" data-en="Home" data-es="Inicio">Home</div>
+  </div>
+  <div class="nav-item" id="nav-history" onclick="showScreen('history')">
+    <div class="nav-icon">📊</div>
+    <div class="nav-label" data-en="History" data-es="Historial">History</div>
+  </div>
+  <div class="nav-item" id="nav-vault" onclick="showScreen('vault')">
+    <div class="nav-icon">🗝️</div>
+    <div class="nav-label" data-en="Vault" data-es="Bóveda">Vault</div>
+  </div>
+  <div class="nav-item" id="nav-settings" onclick="showScreen('settings')">
+    <div class="nav-icon">⚙️</div>
+    <div class="nav-label" data-en="Settings" data-es="Ajustes">Settings</div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     JAVASCRIPT — CORE APP ENGINE
+══════════════════════════════════════════ -->
+<script>
+'use strict';
+
+// ─── APP STATE ────────────────────────────────────────────────
+const state = {
+  lang: 'en',
+  flashActive: false,
+  currentStage: 0,
+  sessionStart: null,
+  sessionStages: [],       // [{stage, time, ts}]
+  sessionTimerInterval: null,
+  todayFlashes: 0,
+  todayNotes: 0,
+  settings: {
+    voice: true,
+    tts: true
+  },
+  // Voice engine
+  recognition: null,
+  recognitionActive: false,
+  commandWindowOpen: false,
+  commandCountdown: null,
+  commandSecondsLeft: 30,
+  // Memory Vault recording
+  vaultRecording: false,
+  vaultRecognition: null,
+  vaultTranscript: '',
+  // Breathing
+  breathingActive: false,
+  breathTimer: null,
+  breathPhase: 'inhale',
+  breathCount: 0,
+  // Forecast
+  flashGapHistory: [],    // gap in ms between flashes
+  lastFlashEndTime: null,
+  forecastInterval: null,
+  // Sessions for history
+  completedSessions: []
+};
+
+// ─── LANGUAGE STRINGS ─────────────────────────────────────────
+const strings = {
+  en: {
+    greeting_idle:     "Hey girlfriend! Say <strong>\"Hey Flashy\"</strong> or tap the button below when you feel it coming. I'm here. 🔥",
+    greeting_preflash: "I've got you. Starting your flash session. Tap your stage whenever you're ready. 💪",
+    greeting_peak:     "You're at the peak. This is the hardest part — and it's almost over. Breathe. 🌊",
+    greeting_cooling:  "Cooling down, honey. You're on the other side now. Almost there. ❄️",
+    greeting_over:     "Flash over. You did it. How do you feel? Give yourself a moment. 🧊",
+    greeting_normal:   "Back to normal. That's your full Thermal Curve™ logged — something NO other app tracks. You're building your data, girlfriend. 🌟",
+    fab_idle:          "I FEEL IT",
+    fab_active:        "IN FLASH",
+    hint_idle:         "Tap when you feel a flash coming\nor say \"Hey Flashy\"",
+    hint_active:       "Tap your stage above as you move through it",
+    mic_sleeping:      "MIC SLEEPING",
+    mic_listening:     "LISTENING",
+    mic_command:       "SAY COMMAND",
+    vault_record:      "Record a voice note",
+    vault_recording:   "Recording… tap to stop",
+    affirmations: [
+      "You have survived 100% of your hot flashes. That's a perfect record. 💪",
+      "Your body is not betraying you. It's changing. There's a difference.",
+      "This feeling is temporary. You are permanent. Breathe through it.",
+      "The women before you didn't have Flashy. You do. You're not alone.",
+      "This is hard. You are harder. Keep going."
+    ],
+    jokes: [
+      "Why did the menopausal woman bring a fan to the meeting? Because she was about to take the floor — and the temperature with it. 😂",
+      "Hot flash workout plan: Step 1 — strip off your cardigan. Step 2 — put it back on. Repeat 15 times. That's your cardio. 🏋️",
+      "My personal summer starts in 3… 2… 1…",
+      "I'm not having a hot flash. I'm having a power surge. Big difference.",
+      "Night sweats are just my body doing free laundry. You're welcome, sheets."
+    ]
+  },
+  es: {
+    greeting_idle:     "¡Hola, girlfriend! Di <strong>\"Hey Flashy\"</strong> o toca el botón cuando lo sientas venir. Aquí estoy. 🔥",
+    greeting_preflash: "Te tengo. Iniciando sesión de flash. Toca tu etapa cuando estés lista. 💪",
+    greeting_peak:     "Estás en el pico. Esta es la parte más difícil — y ya casi termina. Respira. 🌊",
+    greeting_cooling:  "Enfriándose, cariño. Ya estás del otro lado. Casi llegamos. ❄️",
+    greeting_over:     "Flash terminado. Lo lograste. ¿Cómo te sientes? Date un momento. 🧊",
+    greeting_normal:   "De vuelta a la normalidad. Tu Curva Térmica™ completa registrada — algo que NINGUNA otra app rastrea. Estás construyendo tus datos. 🌟",
+    fab_idle:          "LO SIENTO",
+    fab_active:        "EN FLASH",
+    hint_idle:         "Toca cuando sientas un flash venir\no di \"Hey Flashy\"",
+    hint_active:       "Toca tu etapa mientras avanzas",
+    mic_sleeping:      "MIC DORMIDO",
+    mic_listening:     "ESCUCHANDO",
+    mic_command:       "DI COMANDO",
+    vault_record:      "Grabar una nota de voz",
+    vault_recording:   "Grabando… toca para detener",
+    affirmations: [
+      "Has sobrevivido el 100% de tus sofocos. Eso es un récord perfecto. 💪",
+      "Tu cuerpo no te está traicionando. Está cambiando. Hay una diferencia.",
+      "Esta sensación es temporal. Tú eres permanente. Respira.",
+      "Las mujeres antes de ti no tenían Flashy. Tú sí. No estás sola.",
+      "Esto es difícil. Tú eres más difícil. Sigue adelante."
+    ],
+    jokes: [
+      "¿Por qué la mujer menopáusica llevó un abanico a la reunión? Porque estaba a punto de tomar la palabra — y la temperatura con ella. 😂",
+      "Plan de ejercicio del sofoco: Paso 1 — quitarte el cardigan. Paso 2 — ponértelo. Repetir 15 veces. Eso es tu cardio. 🏋️",
+      "Mi verano personal comienza en 3… 2… 1…",
+      "No tengo un sofoco. Tengo un aumento de energía. Gran diferencia.",
+      "Los sudores nocturnos son solo mi cuerpo haciendo lavandería gratis. De nada, sábanas."
+    ]
+  }
+};
+
+const t = (key) => strings[state.lang][key] || strings.en[key];
+
+// ─── WAKE WORDS ───────────────────────────────────────────────
+const WAKE_WORDS    = ['hey flashy', 'hey flash', 'flashy', 'a flashy', 'oye flashy'];
+const CMD_START     = ['start', 'i feel it', 'coming', 'beginning', 'inicio', 'siento', 'empieza', 'lo siento'];
+const CMD_PEAK      = ['peak', 'pico', 'hottest', 'at the peak'];
+const CMD_COOLING   = ['cooling', 'cool down', 'cooling down', 'enfriando', 'enfría'];
+const CMD_OVER      = ['flash over', 'over', 'done', 'terminado', 'termino'];
+const CMD_NORMAL    = ['back to normal', 'normal', 'normal again', 'de vuelta', 'bien'];
+const CMD_SAVE      = ['save', 'save this', 'guarda', 'nota'];
+const CMD_BREATHE   = ['breathe', 'breathing', 'respira', 'respiración'];
+const CMD_JOKE      = ['joke', 'funny', 'chiste', 'gracioso', 'laugh'];
+
+// ─── SPEECH RECOGNITION — CONTINUOUS, NO BEEP ─────────────────────────────
+// ══════════════════════════════════════════════════════════════
+// KEY ARCHITECTURE: recognition is started ONCE and set to
+// continuous:true + interimResults:true. It is NEVER stopped
+// except on explicit user disable. This eliminates the beep
+// that fires on every recognition.start() call.
+// ══════════════════════════════════════════════════════════════
+
+function initVoice() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    console.warn('SpeechRecognition not supported');
+    return;
+  }
+  if (!state.settings.voice) return;
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const r = new SR();
+
+  r.continuous      = true;   // ← never stops → no repeated beep
+  r.interimResults  = true;
+  r.maxAlternatives = 1;
+  r.lang            = state.lang === 'es' ? 'es-US' : 'en-US';
+
+  r.onstart = () => {
+    state.recognitionActive = true;
+    if (!state.commandWindowOpen) {
+      setMicState('listening');
+    }
+  };
+
+  r.onresult = (e) => {
+    const result = e.results[e.results.length - 1];
+    const transcript = result[0].transcript.toLowerCase().trim();
+    const isFinal = result.isFinal;
+
+    // If vault is recording, route there
+    if (state.vaultRecording) {
+      if (isFinal) {
+        state.vaultTranscript += ' ' + transcript;
+        updateVaultLiveText(state.vaultTranscript.trim());
+      }
+      return;
+    }
+
+    // Wake word detection
+    const heardWake = WAKE_WORDS.some(w => transcript.includes(w));
+    if (heardWake && !state.commandWindowOpen) {
+      openCommandOverlay();
+      return;
+    }
+
+    // Command window is open — parse command
+    if (state.commandWindowOpen && isFinal) {
+      parseVoiceCommand(transcript);
+    }
+  };
+
+  r.onerror = (e) => {
+    if (e.error === 'no-speech') {
+      // Expected — keep running
+    } else if (e.error === 'not-allowed') {
+      setMicState('sleeping');
+      showToast('Mic permission denied. Enable in browser settings.');
+    }
+    // All other errors: recognition auto-restarts via onend
+  };
+
+  r.onend = () => {
+    state.recognitionActive = false;
+    // Auto-restart if not deliberately stopped
+    if (state.settings.voice) {
+      setTimeout(() => {
+        try { r.start(); } catch(err) {}
+      }, 300);
+    } else {
+      setMicState('sleeping');
+    }
+  };
+
+  state.recognition = r;
+  try { r.start(); } catch(e) {}
+}
+
+function setMicState(s) {
+  const badge = document.getElementById('micBadge');
+  const label = document.getElementById('micLabel');
+  badge.className = 'mic-badge ' + s;
+  if (s === 'listening') label.textContent = t('mic_listening');
+  else if (s === 'command') label.textContent = t('mic_command');
+  else label.textContent = t('mic_sleeping');
+}
+
+// ─── COMMAND OVERLAY ──────────────────────────────────────────
+function openCommandOverlay() {
+  state.commandWindowOpen = true;
+  state.commandSecondsLeft = 30;
+  setMicState('command');
+  document.getElementById('commandOverlay').classList.add('open');
+  document.getElementById('mainFab').classList.add('command-glow');
+  document.getElementById('commandTimer').textContent = '30';
+  speak("Hey girlfriend, I'm here. How can I help?");
+
+  state.commandCountdown = setInterval(() => {
+    state.commandSecondsLeft--;
+    document.getElementById('commandTimer').textContent = state.commandSecondsLeft;
+    if (state.commandSecondsLeft <= 0) closeCommandOverlay();
+  }, 1000);
+}
+
+function closeCommandOverlay() {
+  clearInterval(state.commandCountdown);
+  state.commandWindowOpen = false;
+  document.getElementById('commandOverlay').classList.remove('open');
+  document.getElementById('mainFab').classList.remove('command-glow');
+  setMicState('listening');
+}
+
+function handleVoiceCommand(cmd) {
+  closeCommandOverlay();
+  switch(cmd) {
+    case 'start':   if (!state.flashActive) startFlash(); else logStage(1); break;
+    case 'peak':    logStage(2); break;
+    case 'cooling': logStage(3); break;
+    case 'over':    logStage(4); break;
+    case 'normal':  logStage(5); break;
+    case 'save':    if (state.flashActive) toggleVaultRecording(); break;
+    case 'breathe': startBreathing(); break;
+    case 'joke':    showHumor(); break;
+  }
+}
+
+function parseVoiceCommand(transcript) {
+  if (CMD_START.some(w => transcript.includes(w)))   { handleVoiceCommand('start');   return; }
+  if (CMD_PEAK.some(w => transcript.includes(w)))    { handleVoiceCommand('peak');    return; }
+  if (CMD_COOLING.some(w => transcript.includes(w))) { handleVoiceCommand('cooling'); return; }
+  if (CMD_OVER.some(w => transcript.includes(w)))    { handleVoiceCommand('over');    return; }
+  if (CMD_NORMAL.some(w => transcript.includes(w)))  { handleVoiceCommand('normal');  return; }
+  if (CMD_SAVE.some(w => transcript.includes(w)))    { handleVoiceCommand('save');    return; }
+  if (CMD_BREATHE.some(w => transcript.includes(w))) { handleVoiceCommand('breathe'); return; }
+  if (CMD_JOKE.some(w => transcript.includes(w)))    { handleVoiceCommand('joke');    return; }
+}
+
+// ─── TTS — FLASHY SPEAKS ──────────────────────────────────────
+function speak(text) {
+  if (!state.settings.tts || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = state.lang === 'es' ? 'es-US' : 'en-US';
+  u.rate = 0.95;
+  u.pitch = 1.1;
+  // Prefer a female voice
+  const voices = window.speechSynthesis.getVoices();
+  const female = voices.find(v => /female|woman|samantha|karen|moira|tessa|victoria|zira/i.test(v.name));
+  if (female) u.voice = female;
+  window.speechSynthesis.speak(u);
+}
+
+// ─── FLASH SESSION ────────────────────────────────────────────
+function handleFabTap() {
+  if (!state.flashActive) {
+    startFlash();
+  } else {
+    openCommandOverlay();
+  }
+}
+
+function startFlash() {
+  state.flashActive  = true;
+  state.sessionStart = Date.now();
+  state.sessionStages = [{ stage: 0, time: 0, label: 'PRE-FLASH' }];
+  state.currentStage = 0;
+
+  // Track gap since last flash
+  if (state.lastFlashEndTime) {
+    const gap = Date.now() - state.lastFlashEndTime;
+    state.flashGapHistory.push(gap);
+    if (state.flashGapHistory.length > 10) state.flashGapHistory.shift();
+  }
+
+  document.getElementById('mainFab').classList.add('flash-active');
+  document.getElementById('fabIcon').textContent = '❄️';
+  document.getElementById('fabLabel').textContent = t('fab_active');
+  document.getElementById('fabHint').textContent = t('hint_active');
+  document.getElementById('stagePanel').style.display = 'block';
+  document.getElementById('forecastPanel').style.display = 'none';
+  setBubble(t('greeting_preflash'));
+  speak("I've got you. Tap your stage whenever you're ready.");
+  startSessionTimer();
+  updateThermalBar(0);
+
+  showToast("Flash session started 🔥");
+}
+
+function logStage(stage) {
+  if (!state.flashActive && stage > 0) {
+    startFlash();
+  }
+  const elapsed = state.sessionStart ? Math.round((Date.now() - state.sessionStart) / 1000) : 0;
+  state.currentStage = stage;
+  state.sessionStages.push({ stage, time: elapsed, label: stageLabel(stage) });
+
+  // Update UI
+  document.querySelectorAll('.stage-btn').forEach(b => b.classList.remove('active'));
+  const activeBtn = document.getElementById('stageBtn' + stage);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  // Thermal bar progress
+  const progress = [0, 20, 45, 65, 82, 100];
+  updateThermalBar(progress[stage] || 0);
+
+  // Bubble + voice
+  const greetingMap = {1:'preflash', 2:'peak', 3:'cooling', 4:'over', 5:'normal'};
+  const greetingKey = 'greeting_' + (greetingMap[stage] || 'preflash');
+  setBubble(t(greetingKey));
+
+  const voiceLines = {
+    1: "Flash started. I'm tracking your Thermal Curve.",
+    2: "You're at the peak. Almost through it. Breathe.",
+    3: "Cooling down. You're doing great.",
+    4: "Flash over. You made it through another one.",
+    5: "Back to normal. Full recovery logged. That's your data, girlfriend."
+  };
+  if (voiceLines[stage]) speak(voiceLines[stage]);
+
+  // Stage 5 = full recovery = session complete
+  if (stage === 5) {
+    setTimeout(completeSession, 1500);
+  }
+
+  // Stage 4 = flash over (still tracking until 5)
+  if (stage === 4) {
+    setMicState('listening');
+    showToast("Flash over! Tap 'Back to Normal' when you're fully recovered");
+  }
+}
+
+function completeSession() {
+  const duration = Math.round((Date.now() - state.sessionStart) / 1000);
+  state.lastFlashEndTime = Date.now();
+
+  // Stop timer
+  clearInterval(state.sessionTimerInterval);
+
+  // Save to local + Firestore
+  const session = {
+    start: state.sessionStart,
+    end: Date.now(),
+    duration,
+    stages: state.sessionStages,
+    notes: state.vaultTranscript || ''
+  };
+  state.completedSessions.push(session);
+  state.todayFlashes++;
+  updateStats();
+
+  // Save to Firestore
+  if (window.saveFlashSession) {
+    window.saveFlashSession(session);
+  }
+
+  // Reset
+  state.flashActive = false;
+  state.currentStage = 0;
+  state.sessionStages = [];
+  state.vaultTranscript = '';
+
+  document.getElementById('mainFab').classList.remove('flash-active');
+  document.getElementById('fabIcon').textContent = '🔥';
+  document.getElementById('fabLabel').textContent = t('fab_idle');
+  document.getElementById('fabHint').textContent = t('hint_idle');
+  document.getElementById('stagePanel').style.display = 'none';
+  document.getElementById('vaultLiveNote').style.display = 'none';
+  document.getElementById('vaultRecordBtn').classList.remove('recording');
+  document.getElementById('vaultBtnLabel').textContent = t('vault_record');
+
+  updateThermalBar(0);
+  renderHistory();
+  updateForecast();
+
+  showToast("Session complete ✨ Full Thermal Curve™ logged!");
+  showScreen('home');
+}
+
+// ─── SESSION TIMER ────────────────────────────────────────────
+function startSessionTimer() {
+  clearInterval(state.sessionTimerInterval);
+  state.sessionTimerInterval = setInterval(() => {
+    const elapsed = Math.round((Date.now() - state.sessionStart) / 1000);
+    const m = Math.floor(elapsed / 60);
+    const s = elapsed % 60;
+    document.getElementById('sessionTimer').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+  }, 1000);
+}
+
+// ─── THERMAL BAR ─────────────────────────────────────────────
+function updateThermalBar(pct) {
+  document.getElementById('thermalProgress').style.width = pct + '%';
+}
+
+// ─── MEMORY VAULT ────────────────────────────────────────────
+function toggleVaultRecording() {
+  if (state.vaultRecording) {
+    stopVaultRecording();
+  } else {
+    startVaultRecording();
+  }
+}
+
+function startVaultRecording() {
+  state.vaultRecording = true;
+  state.vaultTranscript = '';
+
+  const btn = document.getElementById('vaultRecordBtn');
+  btn.classList.add('recording');
+  document.getElementById('vaultBtnIcon').textContent = '⏹️';
+  document.getElementById('vaultBtnLabel').textContent = t('vault_recording');
+  document.getElementById('vaultLiveNote').style.display = 'block';
+  document.getElementById('vaultLiveText').textContent = 'Listening…';
+
+  // Voice recognition is already running (continuous) — just start routing to vault
+  showToast("🗝️ Recording your note…");
+  speak("Go ahead. I'm recording your note.");
+}
+
+function stopVaultRecording() {
+  state.vaultRecording = false;
+
+  const btn = document.getElementById('vaultRecordBtn');
+  btn.classList.remove('recording');
+  document.getElementById('vaultBtnIcon').textContent = '🎙️';
+  document.getElementById('vaultBtnLabel').textContent = t('vault_record');
+
+  const transcript = state.vaultTranscript.trim();
+  if (transcript) {
+    // Save note
+    const note = {
+      text: transcript,
+      stage: state.currentStage,
+      stageLabel: stageLabel(state.currentStage),
+      timestamp: Date.now()
+    };
+    // Save to Firestore
+    if (window.saveMemoryNote) window.saveMemoryNote(note);
+    // Save local
+    const notes = getLocalNotes();
+    notes.unshift(note);
+    localStorage.setItem('faf_vault_notes', JSON.stringify(notes));
+    state.todayNotes++;
+    updateStats();
+    renderVault();
+    showToast("🗝️ Note saved to Memory Vault™");
+    speak("Saved. You can replay it in your vault after the flash.");
+  } else {
+    document.getElementById('vaultLiveNote').style.display = 'none';
+    showToast("No note captured — try again");
+  }
+}
+
+function updateVaultLiveText(text) {
+  document.getElementById('vaultLiveText').textContent = text || 'Listening…';
+}
+
+function getLocalNotes() {
+  try { return JSON.parse(localStorage.getItem('faf_vault_notes') || '[]'); }
+  catch(e) { return []; }
+}
+
+// ─── CBT SUPPORT ──────────────────────────────────────────────
+function startBreathing() {
+  document.getElementById('cbtMenu').classList.remove('visible');
+  document.getElementById('breathingGuide').classList.add('visible');
+  speak("Let's breathe together. Inhale slowly for 4 counts.");
+  runBreathCycle();
+}
+
+function stopBreathing() {
+  clearTimeout(state.breathTimer);
+  state.breathingActive = false;
+  document.getElementById('breathingGuide').classList.remove('visible');
+  document.getElementById('cbtMenu').classList.add('visible');
+  window.speechSynthesis.cancel();
+}
+
+function runBreathCycle() {
+  state.breathingActive = true;
+  const circle = document.getElementById('breathCircle');
+  const instruction = document.getElementById('breathInstruction');
+  const countEl = document.getElementById('breathCount');
+
+  // Inhale 4s
+  circle.className = 'breath-circle inhale';
+  instruction.textContent = 'INHALE';
+  countEl.textContent = '4 seconds';
+  circle.textContent = '😮‍💨';
+
+  state.breathTimer = setTimeout(() => {
+    if (!state.breathingActive) return;
+    // Hold 1s
+    instruction.textContent = 'HOLD';
+    countEl.textContent = '1 second';
+
+    state.breathTimer = setTimeout(() => {
+      if (!state.breathingActive) return;
+      // Exhale 6s
+      circle.className = 'breath-circle exhale';
+      instruction.textContent = 'EXHALE';
+      countEl.textContent = '6 seconds';
+      circle.textContent = '😌';
+      speak("Exhale slowly.");
+
+      state.breathTimer = setTimeout(() => {
+        if (!state.breathingActive) return;
+        state.breathCount++;
+        if (state.breathCount < 5) {
+          speak("Again. Inhale.");
+          runBreathCycle();
+        } else {
+          state.breathCount = 0;
+          instruction.textContent = 'DONE ✨';
+          countEl.textContent = '5 cycles complete';
+          speak("Great job. You just completed 5 breath cycles. How do you feel?");
+          setTimeout(stopBreathing, 3000);
+        }
+      }, 6000);
+    }, 1000);
+  }, 4000);
+}
+
+function showAffirmation() {
+  const list = strings[state.lang].affirmations;
+  const text = list[Math.floor(Math.random() * list.length)];
+  setBubble(text);
+  speak(text.replace(/[💪🔥❄️🌟]/g, ''));
+}
+
+function showHumor() {
+  const list = strings[state.lang].jokes;
+  const text = list[Math.floor(Math.random() * list.length)];
+  setBubble(text);
+  speak(text.replace(/[😂🏋️]/g, ''));
+}
+
+// ─── FLASH FORECAST ───────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// FLASH FORECAST ALARM™
+// FLASHYAF™ | BROWNWORKS4U2 LLC | © 2026 | CONFIDENTIAL
+// Proprietary feature — patent filing in progress
+// BETA: Active for all pioneer users.
+// ═══════════════════════════════════════════════════════════════
+
+function updateForecast() {
+  const gaps = state.flashGapHistory;
+  const panel = document.getElementById('forecastPanel');
+
+  if (gaps.length < 3) {
+    panel.style.display = 'none';
+    return;
+  }
+
+  panel.style.display = 'block';
+
+  const avgGap = gaps.reduce((a,b) => a+b, 0) / gaps.length;
+  const stdDev = Math.sqrt(gaps.map(g => Math.pow(g - avgGap, 2)).reduce((a,b)=>a+b,0) / gaps.length);
+  const cv = stdDev / avgGap; // coefficient of variation
+
+  if (cv > 0.6) {
+    // Pattern too irregular
+    document.getElementById('forecastCountdown').textContent = '--:--';
+    document.getElementById('forecastLabel').textContent = 'Your pattern is still unpredictable — keep logging.';
+    document.getElementById('forecastConfidence').textContent = '';
+    return;
+  }
+
+  const nextFlashAt = state.lastFlashEndTime + avgGap;
+  const confidence = cv < 0.2 ? 'HIGH' : 'MODERATE';
+  const confClass  = cv < 0.2 ? 'conf-high' : 'conf-mod';
+
+  document.getElementById('forecastConfidence').innerHTML =
+    `Confidence: <span class="${confClass}">${confidence}</span>`;
+  document.getElementById('forecastLabel').textContent =
+    `Based on your avg gap: ~${Math.round(avgGap/60000)} minutes`;
+
+  // Live countdown
+  clearInterval(state.forecastInterval);
+  state.forecastInterval = setInterval(() => {
+    const remaining = Math.max(0, nextFlashAt - Date.now());
+    if (remaining === 0) {
+      clearInterval(state.forecastInterval);
+      document.getElementById('forecastCountdown').textContent = 'NOW';
+      document.getElementById('forecastLabel').textContent = 'Flash window is open — stay with Flashy.';
+      speak("Based on your pattern, your next flash window is open. I'm right here.");
+      return;
+    }
+    const m = Math.floor(remaining / 60000);
+    const s = Math.floor((remaining % 60000) / 1000);
+    document.getElementById('forecastCountdown').textContent =
+      `${m}:${s.toString().padStart(2,'0')}`;
+  }, 1000);
+}
+
+// ─── STATS ───────────────────────────────────────────────────
+function updateStats() {
+  document.getElementById('statFlashes').textContent = state.todayFlashes;
+  document.getElementById('statNotes').textContent = state.todayNotes;
+
+  if (state.completedSessions.length > 0) {
+    const avgSec = state.completedSessions
+      .map(s => s.duration)
+      .reduce((a,b)=>a+b,0) / state.completedSessions.length;
+    document.getElementById('statAvgDuration').textContent = (avgSec / 60).toFixed(1);
+  }
+}
+
+// ─── HISTORY RENDER ───────────────────────────────────────────
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  if (state.completedSessions.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-text">No flash sessions yet.<br>Complete your first flash to see your Thermal Curve™ data here.</div></div>`;
+    return;
+  }
+  list.innerHTML = state.completedSessions.slice().reverse().map(s => {
+    const d = new Date(s.start);
+    const dur = Math.round(s.duration / 60);
+    const stages = s.stages.map(st =>
+      `<div class="history-stage-pip">${st.label}</div>`
+    ).join('');
+    return `<div class="history-item">
+      <div class="history-date">${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
+      <div class="history-stages">${stages}</div>
+      <div class="history-duration">${dur} min total • ${s.stages.length} stages logged</div>
+    </div>`;
+  }).join('');
+}
+
+// ─── VAULT RENDER ─────────────────────────────────────────────
+function renderVault() {
+  const notes = getLocalNotes();
+  const list  = document.getElementById('vaultList');
+  if (notes.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🗝️</div><div class="empty-text">Your vault is empty.<br>Record a voice note during a flash — it'll be saved here for review.</div></div>`;
+    return;
+  }
+  list.innerHTML = notes.map(n => {
+    const d = new Date(n.timestamp);
+    return `<div class="vault-item">
+      <div class="vault-item-stage">${n.stageLabel || 'During flash'}</div>
+      <div class="vault-item-text">${n.text}</div>
+      <div class="vault-item-meta">${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
+    </div>`;
+  }).join('');
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────
+function stageLabel(stage) {
+  const labels = {0:'Pre-Flash',1:'Start',2:'Peak',3:'Cool Down',4:'Flash Over',5:'Back to Normal'};
+  return labels[stage] || 'Unknown';
+}
+
+function setBubble(html, cooling = false) {
+  const b = document.getElementById('flashyBubble');
+  b.innerHTML = html;
+  b.className = 'flashy-bubble' + (cooling ? ' cooling' : '');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ─── SCREENS ─────────────────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+
+  if (name === 'history') renderHistory();
+  if (name === 'vault')   renderVault();
+}
+
+// ─── LANGUAGE ────────────────────────────────────────────────
+function toggleLang() {
+  state.lang = state.lang === 'en' ? 'es' : 'en';
+  document.getElementById('langBtn').textContent = state.lang === 'en' ? 'ES' : 'EN';
+  document.documentElement.lang = state.lang;
+  applyLang();
+  // Update recognition language
+  if (state.recognition) {
+    state.recognition.lang = state.lang === 'es' ? 'es-US' : 'en-US';
+  }
+  if (!state.flashActive) {
+    setBubble(t('greeting_idle'));
+  }
+}
+
+function applyLang() {
+  document.querySelectorAll('[data-en]').forEach(el => {
+    el.textContent = state.lang === 'es' ? (el.dataset.es || el.dataset.en) : el.dataset.en;
+  });
+  document.getElementById('fabLabel').textContent = state.flashActive ? t('fab_active') : t('fab_idle');
+  document.getElementById('fabHint').textContent = state.flashActive ? t('hint_active') : t('hint_idle');
+  if (!state.vaultRecording) {
+    document.getElementById('vaultBtnLabel').textContent = t('vault_record');
+  }
+}
+
+// ─── SETTINGS ────────────────────────────────────────────────
+function toggleSetting(key) {
+  state.settings[key] = !state.settings[key];
+  document.getElementById(key + 'Toggle').className = 'toggle' + (state.settings[key] ? ' on' : '');
+  if (key === 'voice') {
+    if (state.settings.voice) {
+      initVoice();
+    } else {
+      if (state.recognition) { try { state.recognition.stop(); } catch(e) {} }
+      setMicState('sleeping');
+    }
+  }
+}
+
+function clearTodayData() {
+  if (!confirm('Clear all today\'s session data? Vault notes will be kept.')) return;
+  state.completedSessions = [];
+  state.todayFlashes = 0;
+  state.flashGapHistory = [];
+  updateStats();
+  renderHistory();
+  showToast("Today's data cleared");
+}
+
+// ─── BOOT ─────────────────────────────────────────────────────
+function boot() {
+  // Splash → home
+  setTimeout(() => {
+    document.getElementById('splash-status').textContent = 'Ready. Hey girlfriend. 🔥';
+    setTimeout(() => {
+      document.getElementById('screen-splash').classList.remove('active');
+      document.getElementById('screen-home').classList.add('active');
+      // Init voice after user gesture already happened (page load = not a gesture,
+      // but continuous recognition started here will prompt mic permission once,
+      // then run silently — no repeated beep)
+      initVoice();
+      renderVault();
+    }, 800);
+  }, 1800);
+}
+
+// Wait for DOM
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', boot);
+} else {
+  boot();
+}
+</script>
+
+</body>
+</html>

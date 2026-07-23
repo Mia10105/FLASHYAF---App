@@ -1,0 +1,32 @@
+Please rewrite the core application voice routing script, user data storage modules, and screen rendering rules to execute these specifications exactly. Maintain our premium branding styling (Rich Black #05070B, Deep Navy #0B1F3A, Montserrat ExtraBold headings, Open Sans body text):
+
+1. BACKGROUND APP WAKE & PERSONALIZED AUDIO GREETING
+- Implement a background Service Worker listener that keeps the Web Speech recognition context initialized when the app is open or running in background mobile browser tabs.
+- When the voice trigger "Hey Flashy" is detected from a background or idle state, immediately wake the interface, bring the Home Screen state to the foreground, and toggle the microphone indicator to active.
+- Read the user's profile name variable from local hardware memory and execute window.speechSynthesis to play the authentic companion audio statement: "Hey girlfriend, I'm here. I've got you, [User Name]. Tell me what you need."
+
+2. TIMEOUT LAUNCH AND 30-SECOND PRIVACY SLEEP PROTOCOLS
+- When "Hey Flashy" is spoken on the Home Screen, the app must remain on the Home Screen, flash a visual glowing indicator ring, and pause for a secondary instruction. It must NOT jump automatically to Stage 1.
+- If a subsequent command string ("take a note", "tell me a joke", "breathe with me") is verified within a 30-second window, clear the timer and trigger that precise programmatic path.
+- If no secondary command is voiced within 30 seconds, forcefully trigger recognition.stop(), shift the UI dashboard status to a secure "Mic Sleeping" badge state, and stop all background listening loops until the user says "Hey Flashy" again to safely protect user privacy and legal compliance data models.
+
+3. THE DYNAMIC BLAZING INTERVENTION TIMELINE & COLOR SWAP
+- Adjust the flash alert view screens to match our heat-progression visual pillars:
+  * Regular Flash logs must render on a clean, solid Warning Copper Orange screen.
+  * Emergency Discomfort Triggers ("blazing", "i'm blazing", "hey flashy i'm blazing", "hey flashy blazing") must route immediately to a pulsing deep Fire/Oxblood Red (#8B0000) view layout.
+- When an emergency discomfort trigger initializes, instantiate a background timestamp counter:
+  * At 1:00 (60 Seconds): Check the state of the autoRunBreathing variable toggle. If true, smoothly slide the view from the Fire Red layout into the Electric Blue Ice Gradient Breathing Circle view and initiate automatic voice-guided breathing metrics.
+  * At 2:00 (120 Seconds): Keep the UI locked on the soothing breathing system and play the out-loud reassurance prompt: "You are doing amazing, girlfriend. Just hang in there, take deep breaths, it is almost over."
+
+4. BREATHE WITH ME MANUAL OVERRIDE TOGGLE
+- Update the home dashboard "Breathe with Me" control item card to handle state selection changes:
+  * Allow users to toggle or long-press the card to set the autoRunBreathing boolean parameter to true or false.
+  * When switched false, suppress the automatic 1-minute navigation jump to the breathing screen during a hot flash. The user can still tap the button manually at any time to initialize it.
+
+5. FLASH JOURNAL LOG NOTEBOOK COMPONENT
+- Underneath the Home Screen's existing "Daily Check-In" layout grid, add an interactive card called "Flash Journal Log Notebook".
+- Clicking this notebook card must open a clean, scrollable entry feed compiled directly from phone localStorage data strings.
+- Render each note entry card clearly showing: [Date Stamp] | [Time Stamp] | [Logged Menopause Stage] followed by the spoken text note.
+- Place two high-contrast, text target buttons natively onto each card:
+  1. [Listen to Note] -> Plays back the written text entry out loud via the browser speech engine.
+  2. [Delete Entry] -> Permanently wipes that single item index from the device arrays and updates the feed view.

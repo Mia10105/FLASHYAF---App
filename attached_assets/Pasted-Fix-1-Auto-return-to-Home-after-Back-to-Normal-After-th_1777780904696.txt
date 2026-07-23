@@ -1,0 +1,36 @@
+Fix 1 — Auto-return to Home after Back to Normal:"After the user taps BACK TO NORMAL and the flash is saved, do NOT stay on the Summary screen. Automatically navigate directly to the Home screen after a 3 second delay showing a brief success message like 'Flash logged! Great job.' The Log Another button can stay but the default behavior must be automatic return to Home. Remove any screen that requires the user to manually navigate back."Fix 2 — Rename stages correctly:"Rename the four tracking stages to exactly these names everywhere in the app — buttons, dots, summary, history, pattern intelligence:
+Stage 1: FLASH STARTED (was 'Started')
+Stage 2: PEAK INTENSITY (keep)
+Stage 3: COOLING DOWN (keep)
+Stage 4: FLASH ENDED (was 'Back to Normal')
+When user taps FLASH ENDED that is the trigger to save and return home."Fix 3 — Hey Flashy voice activation:"The voice trigger is not working. Rebuild it completely using this approach:Use webkitSpeechRecognition in continuous mode with interimResults set to true. On every result check if the transcript contains any of these words: flashy, flash, started, begin, start. If any match is found speak back 'Got you, flash started' using speechSynthesis and advance to Stage 1.Also add voice commands for each stage:
+
+Say 'peak' or 'intense' → advance to PEAK INTENSITY
+Say 'cooling' or 'better' → advance to COOLING DOWN
+Say 'done' or 'finished' or 'ended' → advance to FLASH ENDED and save
+Show exactly what the mic hears in a small debug box during development."Fix 4 — Expand humor and encouragement with web search:"Use these expanded databases and make the voice that reads them sound warm, friendly and conversational — rate 0.85, pitch 1.15, use the most human-sounding female English voice available.HUMOR lines — add ALL of these:
+
+'You are not hot, you are temperature-gifted. Own it.'
+'Plot twist: you ARE the climate change.'
+'Your superpower is generating heat without effort.'
+'Menopause called. It said you are handling it like a boss.'
+'Some people pay for hot yoga. You get it free, honey.'
+'Your internal thermostat is just... wildly ambitious.'
+'You are literally too hot to function. Scientifically proven.'
+'Flash duration: impressive. You: completely undefeated.'
+'Your body said let me turn up the heat. You said watch me.'
+'Temperature rising. Standards staying high. As they should.'
+'Even your hot flashes have more confidence than most people.'
+'Your body runs hot because it runs the whole show.'
+'Flash over. Legend status: permanently confirmed.'
+'You are not falling apart. You are upgrading.'
+'Hot flash? Excuse me, that is a POWER surge.'
+'Normal people get warm. You get magnificent.'
+'The thermostat said 72 degrees. Your body said hold my estrogen.'
+'You are basically a human space heater. Powerful and necessary.'
+'Scientists call it a hot flash. We call it a moment of intensity.'
+'Your body is just reminding everyone who is in charge.'
+ENCOURAGEMENT lines — add ALL of these:
+
+'You have gotten thr
+Sonnet 4.6

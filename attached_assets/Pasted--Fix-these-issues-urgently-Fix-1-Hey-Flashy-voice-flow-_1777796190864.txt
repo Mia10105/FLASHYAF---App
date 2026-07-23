@@ -1,0 +1,14 @@
+"Fix these issues urgently:
+Fix 1 — Hey Flashy voice flow: When user says Hey Flashy do not immediately trigger any stage. Instead Flashy speaks back: 'Hey! I am listening — tell me what is happening.' Then wait for the next voice command. If user says started or flash started — log Flash Started. If user says peak — log Peak. If user says cooling or cooling down — log Cooling Down. If user says ended or flash ended — save and go home. Flashy must acknowledge every command she hears by speaking it back before executing.
+Fix 2 — Community posts not appearing: Fix the community feed so approved and pending posts actually display in the community tab for users to read. Show pending posts to the submitting user only with a label saying Pending Review. Show approved posts to everyone. The Hot Moments feed, Suggest Humor, and Suggest Encouragement submissions must all appear in their respective sections after submission with a thank you confirmation message not just sit blank.
+Fix 3 — Community moderation queue: In the admin dashboard add a visible moderation queue showing all pending community posts, hot moments, humor suggestions, and encouragement suggestions. Admin can tap Approve or Reject on each one. Approved items immediately appear in the public feed.
+Fix 4 — Wrong launch year: Find every instance of 2025 anywhere in the app and replace with 2026. Check About screen, footer, splash screen, legal pages, everywhere.
+Fix 5 — Wrong contact email: Replace every instance of contact@flashyaf.com and privacy@flashyaf.com with contact@flashyafapp.com and privacy@flashyafapp.com. Check every screen including legal pages, about screen, settings, and any mailto links.
+Fix 6 — Community tabs organization: The Community tab must have clearly labeled sections that users can see and read:
+
+Main Feed: general posts with reactions
+Hot Moments: funny and embarrassing stories
+Humor Bank: approved humor submissions with contributor credit
+Encouragement Hall: approved encouragement submissions
+Featured Stories: longer approved user stories
+Each section must show existing approved content and allow new submissions."

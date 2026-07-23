@@ -1,0 +1,22 @@
+Please implement these critical real-time active timeline overrides, privacy microphone protocols, and user interface color state updates into our core application script. Ensure all visual changes adhere to our dark premium backgrounds (Rich Black #05070B and Deep Navy #0B1F3A) using Montserrat/Open Sans typography:
+
+1. REFACTOR SEVERITY INTERFACE GRADIENTS (THE COLOR SWAP)
+- Swap the visual colors for the initial alert screens to reflect heat escalation:
+  * Stage 1 / "Flash Started" view screen must be styled with our high-impact Warning Copper Orange palette.
+  * The "Blazing" emergency view screen must switch to a burning Fire/Oxblood Red (#8B0000) pulsing canvas to indicate maximum heat discomfort.
+
+2. THE BLAZING ACTIVE TIMELINE ENGINE (1-MIN & 2-MIN AUTOMATION)
+- Create a global timeline tracker tracking instance (`let flashTimer = null;`) that instantiates immediately when an emergency discomfort trigger ("blazing", "i'm blazing", "hey flashy blazing", "hey flashy i'm blazing") is matched.
+- 1-MINUTE AUTOMATIC RUN: Exactly 60 seconds into the flash state tracking loop, check the state of the automatic guide boolean variable (`autoRunBreathing`). If true, dynamically slide the app UI away from the Fire Red blazing screen into the Electric Blue Ice Gradient Breathing Circle view and automatically run the spoken audio guidance scripts.
+- 2-MINUTE REASSURANCE PROMPT: Exactly 120 seconds into the tracking window, trigger window.speechSynthesis to play the companion girlfriend audio statement: "You are doing amazing, girlfriend. Just hang in there, take deep breaths, it is almost over."
+
+3. "BREATHE WITH ME" AUTO-RUN MANUAL TOGGLE
+- Refactor the existing "Breathe with Me" UI controller card on the home view layout to handle state configuration:
+  * Allow users to toggle or long-press to modify `autoRunBreathing` true/false variables. 
+  * If this toggle is switched off, suppress the 1-minute auto-transition rule to the breathing engine view. The screen will stay on the cooling dashboard unless manually tapped.
+
+4. 30-SECOND PRIVACY MICROPHONE DISCONNECT TIMER
+- Update the system wake response window to comply with data safety standards:
+  * When "Hey Flashy" is spoken, place the local audio web module into an unblocked "Listening State" for exactly 30 seconds, illuminating the responsive visual aura indicator loops.
+  * If a follow-up secondary command keyword matches a valid system feature string within those 30 seconds, reset the tracking instance and run the sub-module.
+  * If the timer hits 30 seconds with zero structural feature instruction spoken, forcefully execute an programmatic mic shut down via `recognition.stop();`, switch the UI panel indicator to a secure "Mic Sleeping" card badge, and go fully dormant until the next manual tap or native phrase wakes the device.

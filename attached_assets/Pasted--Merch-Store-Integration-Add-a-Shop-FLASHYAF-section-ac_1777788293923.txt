@@ -1,0 +1,44 @@
+ Merch Store Integration:
+"Add a Shop FLASHYAF™ section accessible from the bottom navigation and from Settings. Show a merch preview page with these product categories displayed as clean cards with placeholder images:
+
+Cooling Towels — Stay cool on the go
+FLASHYAF™ Tees — Wear your power
+Insulated Water Bottles — Hydration is everything
+Cooling Neck Wraps — Instant relief anywhere
+Journal & Planner — Track everything analog too
+Gift Sets — For the woman in your life who needs this
+
+Each card has a Shop Now button that links to: https://brownworks4u2.myshopify.com (your Shopify store URL — update this to your real URL)
+Add a banner at the top saying: Gear designed for women who refuse to just survive menopause. Free shipping on orders over $50.
+Add an Exclusive Beta Discount section showing a code: FOUNDING20 for 20% off first order. Save whether user has viewed the shop to Firestore for analytics.
+Also add a merch callout card on the Home screen that rotates — shows one featured product with a small image and Shop Now link. Show it every 3rd app open not every time so it is not annoying."
+
+Paste 2 — Referral Program Enhancement:
+"Make the referral program connect to the merch store. When a user refers 3 friends who sign up give them a reward — show a congratulations modal saying You earned a reward! Use code REFER3 for 30% off your next FLASHYAF Shop order.
+Track referral milestones:
+
+1 referral: Beta Referrer badge
+3 referrals: 30% off merch code
+5 referrals: FLASHYAF VIP badge and free Premium month when launched
+10 referrals: Founding Ambassador status with special gold profile badge
+
+Show referral progress on the referral screen as a progress bar toward next reward."
+
+Paste 3 — BrownWorks4U2 Brand Integration:
+"Add a subtle About Our Company section in Settings under About FLASHYAF. Show:
+FLASHYAF™ is a product of BROWNWORKS4U2 LLC — a woman-owned, minority-owned company based in Virginia built from lived experience.
+Our Divisions:
+
+FLASHYAF™ — Digital Health Innovation
+BrownMark Designz — Apparel and Merchandise
+BrownWorks4U2 — Service Based Operations
+
+Founder: Iva Marie Brown-Ziegler
+Add social media placeholder links for:
+
+Instagram: @flashyaf
+TikTok: @flashyaf
+Facebook: FLASHYAF
+Email: contact@brownworks4u2.com
+
+Style it with the FLASHYAF brand colors and a small tagline: Built by a woman who needed this and could not find it. So she built it herself."

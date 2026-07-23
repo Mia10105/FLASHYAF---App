@@ -1,0 +1,24 @@
+Please refactor my app's core JavaScript files to fix three specific voice-routing, data-storage, and mobile hardware issues without altering our design layout or styles. Execute the code blocks exactly as outlined below:
+
+1. WAKE WORD TIMEOUT & SYSTEM ROUTING FIX
+- Stop the app from immediately navigating to the Stage 1 screen when 'Hey Flashy' is spoken on the Home Screen.
+- Introduce a 2-second listening window after 'Hey Flashy' is detected. If no secondary command follows, the app must trigger an audible voice prompt asking, "I'm listening, girlfriend. What do you need?" instead of changing screens.
+- Program the listener to use these exact isolated routing rules:
+  * Emergency Discomfort Triggers (Bypass Home Screen immediately to Meltdown/Cool Down screen): "blazing", "i'm blazing", "hey flashy i'm blazing", "hey flashy blazing".
+  * General Feature Commands (Wait for full expression evaluation): 
+    - "take a note" / "write this down" -> Route to note recorder
+    - "tell me a joke" / "need a laugh" -> Play audio random item from humor bank
+    - "breathe with me" / "i can't breathe" -> Route to breathing animation screen
+
+2. ELIMINATE MOBILE RECOGNITION BEEPING
+- To stop mobile devices from making an annoying native reminder beep every time the microphone cycles, ensure that `recognition.continuous = true;` is strictly maintained and optimization loops prevent manual call restarts on interim events.
+
+3. ADD "MY HEAT LOG & JOURNAL" SCREEN WITH LOCAL STORAGE
+- Implement a new view section called "My Heat Log & Journal" using our Rich Black (#05070B) and Deep Navy (#0B1F3A) visual framework.
+- Create local hardware storage logic using browser `localStorage` so that text logs are stored entirely on the user's local device for total privacy.
+- Include data structures for entries containing: Date, Time, Menu Stage, and Custom Text Notes.
+- Add an audible text-to-speech option beside every log entry via `window.speechSynthesis` mapping back to our friendly companion persona voice.
+
+4. WEARABLE INTEGRATION FRAMEWORK
+- Implement structural JavaScript connection managers and placeholder API endpoints for: Apple Watch (CoreBluetooth/HealthKit), Fitbit API Webhooks, Garmin Connect API, and Oura Ring Web API.
+- Create a clear UI dashboard component option labeled "Connect Your Device" containing activation toggles for these 4 specific ecosystems to stream incoming biometrics into our upcoming baseline telemetry matrix.

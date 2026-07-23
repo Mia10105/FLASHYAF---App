@@ -1,0 +1,166 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Helpers ─────────────────────────────────────────────────────────────
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return request.auth != null
+          && request.auth.token.email == 'iva@brownworks4u2.com';
+    }
+
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    // ─── Public stats cache ───────────────────────────────────────────────────
+    // Aggregate research stats written by authenticated users, readable by anyone.
+    match /publicStats/{docId} {
+      allow read:   if true;
+      allow write:  if isAuthenticated();
+    }
+
+    // ─── User profiles & subcollections ──────────────────────────────────────
+    match /users/{uid} {
+      allow read, write: if isOwner(uid) || isAdmin();
+
+      match /flashes/{flashId} {
+        allow read:   if isOwner(uid) || isAdmin();
+        allow write:  if isOwner(uid);
+      }
+
+      match /timeCapsules/{capsuleId} {
+        allow read, write: if isOwner(uid) || isAdmin();
+      }
+
+      match /checkins/{checkinId} {
+        allow read, write: if isOwner(uid) || isAdmin();
+      }
+
+      match /checkinLog/{logId} {
+        allow read, write: if isOwner(uid) || isAdmin();
+      }
+
+      match /journalEntries/{entryId} {
+        allow read, write: if isOwner(uid) || isAdmin();
+      }
+    }
+
+    // Raw flash records are NEVER readable across users, by anyone but the
+    // owner or the admin (see /users/{uid}/flashes/{flashId} rule above).
+    // Research aggregation is computed by a trusted Cloud Function using
+    // Firebase Admin privileges (which bypass these rules entirely) and
+    // writes only de-identified totals to /publicStats — never raw records.
+    match /{path=**}/flashes/{flashId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ─── Partner messages ─────────────────────────────────────────────────────
+    // Partners write a check-in; the account holder reads it in their home screen.
+    match /partnerMessages/{msgId} {
+      allow read:   if isAuthenticated()
+                    && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated()
+                    && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated()
+                    && resource.data.userId == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+
+    // ─── Newsletter / Ambassador newsletter ───────────────────────────────────
+    match /newsletter/{docId} {
+      allow read:          if isAdmin();
+      allow create:        if isAuthenticated()
+                           && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    match /ambassadorNewsletter/{docId} {
+      allow read:          if isAdmin();
+      allow create:        if isAuthenticated()
+                           && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // ─── Community posts ──────────────────────────────────────────────────────
+    match /community/{postId} {
+      allow read:   if isAuthenticated();
+      allow create: if isAuthenticated()
+                    && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if (isAuthenticated()
+                    && resource.data.userId == request.auth.uid)
+                    || isAdmin();
+    }
+
+    // ─── Stories ──────────────────────────────────────────────────────────────
+    match /stories/{storyId} {
+      allow read:   if isAuthenticated();
+      allow create: if isAuthenticated()
+                    && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if (isAuthenticated()
+                    && resource.data.userId == request.auth.uid)
+                    || isAdmin();
+    }
+
+    // ─── Hot moments ──────────────────────────────────────────────────────────
+    match /hotMoments/{docId} {
+      allow read:   if isAuthenticated();
+      allow create: if isAuthenticated()
+                    && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // ─── User submissions (humor, encouragement, feedback) ───────────────────
+    match /humorSubmissions/{docId} {
+      allow read:   if isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin();
+    }
+
+    match /encouragementSubmissions/{docId} {
+      allow read:   if isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin();
+    }
+
+    match /feedback/{docId} {
+      allow read:   if isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin();
+    }
+
+    // ─── Public profiles & username index ────────────────────────────────────
+    match /profiles/{username} {
+      allow read:   if true;
+      allow create: if isAuthenticated()
+                    && request.resource.data.uid == request.auth.uid;
+      allow update: if isAuthenticated()
+                    && resource.data.uid == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+
+    match /usernames/{username} {
+      allow read:   if true;
+      allow create: if isAuthenticated()
+                    && request.resource.data.uid == request.auth.uid;
+      allow delete: if isAuthenticated()
+                    && resource.data.uid == request.auth.uid;
+    }
+
+    // ─── Waitlist ─────────────────────────────────────────────────────────────
+    // Public signup form — anyone can join, only admin can see entries.
+    match /waitlist/{docId} {
+      allow read:   if isAdmin();
+      allow create: if true;
+    }
+
+    // ─── Catch-all: deny everything not matched above ─────────────────────────
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

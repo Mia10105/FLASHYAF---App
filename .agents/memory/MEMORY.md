@@ -1,0 +1,1 @@
+- [Firebase functions deploys from Replit](firebase-functions-deploy.md) — Replit-generated package-lock points at package-firewall.replit.local; rewrite to registry.npmjs.org before external Cloud Build deploys.
