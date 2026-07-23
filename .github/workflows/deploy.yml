@@ -27,6 +27,8 @@ jobs:
 
       - name: Build frontend
         run: pnpm --filter flashyaf build
+        env:
+          PORT: 3000
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
