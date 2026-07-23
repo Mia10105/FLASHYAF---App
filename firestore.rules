@@ -151,6 +151,32 @@ service cloud.firestore {
                     && resource.data.uid == request.auth.uid;
     }
 
+    // ─── Beta Application Gating (Pioneer Beta) ──────────────────────────────
+    // Token doc can be read directly by token ID (never listed/browsed), and
+    // can only be marked used:false -> used:true by the client. Tokens are
+    // only ever CREATED by the trusted Cloud Function (Admin SDK bypasses
+    // these rules). Application submissions are write-only from the client —
+    // no one, including the submitter, can read them back.
+    match /betaApplicationTokens/{token} {
+      allow get: if true;
+      allow create: if false;
+      allow update: if
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['used', 'usedAt']) &&
+        resource.data.used == false &&
+        request.resource.data.used == true;
+      allow delete: if false;
+      allow list: if false;
+    }
+
+    match /betaApplications/{applicationId} {
+      allow create: if true;
+      allow read: if false;
+      allow update: if false;
+      allow delete: if false;
+      allow list: if false;
+    }
+
     // ─── Waitlist ─────────────────────────────────────────────────────────────
     // Public signup form — anyone can join, only admin can see entries.
     match /waitlist/{docId} {
