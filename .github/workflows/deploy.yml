@@ -1,39 +1,32 @@
 name: Build and Deploy
-
 on:
   push:
     branches: [main]
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 9
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'pnpm'
-
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
-
       - name: Build frontend
         run: pnpm --filter flashyaf build
         env:
           PORT: 3000
           BASE_PATH: /
-
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./artifacts/flashyaf/dist/public
-          cname: flashyafapp.com
+          cname: app.flashyafapp.com
