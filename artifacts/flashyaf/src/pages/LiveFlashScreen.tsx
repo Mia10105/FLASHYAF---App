@@ -470,6 +470,34 @@ export default function LiveFlashScreen({ onComplete }: Props) {
   const endTimeRef = useRef(0);
   const speechShouldContinueRef = useRef(false);
 
+  // FIX: detect a stale/stuck session on mount
+  // If the resumed saved state already ended in BACK_TO_NORMAL, a previous
+  // session's completion handler must have aborted before it could clear
+  // localStorage and navigate away (see the fail-safe fix in
+  // handleCompleteRef above). Resuming this as if it were still live would
+  // restart the timer counting up from the original, long-past start time.
+  // Instead, immediately re-run completion/cleanup for this stale session.
+  const staleCompletionHandledRef = useRef(false);
+  useEffect(() => {
+    if (staleCompletionHandledRef.current) return;
+    if (
+      savedFlashState &&
+      savedFlashState.stages.length > 0 &&
+      savedFlashState.stages[savedFlashState.stages.length - 1].stage ===
+        "BACK_TO_NORMAL"
+    ) {
+      staleCompletionHandledRef.current = true;
+      const finalEntry =
+        savedFlashState.stages[savedFlashState.stages.length - 1];
+      endTimeRef.current = finalEntry.timestamp;
+      frozenElapsedRef.current = Math.floor(
+        (finalEntry.timestamp - startTimeRef.current) / 1000,
+      );
+      setTimerFrozen(true);
+      handleCompleteRef.current(savedFlashState.stages);
+    }
+  }, []);
+
   const [drawer, setDrawer] = useState<DrawerType>(null);
   const drawerRef = useRef<DrawerType>(null);
   useEffect(() => {
@@ -810,23 +838,29 @@ export default function LiveFlashScreen({ onComplete }: Props) {
   const handleCompleteRef = useRef<(completedStages: StageEntry[]) => void>(
     async () => {},
   );
-
   handleCompleteRef.current = async (completedStages: StageEntry[]) => {
-    if (!user) return;
     setSaving(true);
+
+    // FIX: fail-safe cleanup - previously `if (!user) return;` aborted here
+    // before any cleanup ran, so a transient auth glitch at the exact
+    // moment "Back to Normal" completed could leave this screen stuck
+    // showing a live session (LIVE badge + running timer) indefinitely,
+    // since the local "active session" markers were never cleared and
+    // the screen never navigated away. Cleanup + navigation must always
+    // run; only the Firestore save itself depends on `user`.
     localStorage.removeItem("activeFlash");
     localStorage.removeItem(ACTIVE_FLASH_STATE_KEY);
+    try {
+      localStorage.removeItem(NOTES_DRAFT_KEY);
+    } catch {
+      /* storage unavailable */
+    }
 
     const endTime = endTimeRef.current || Date.now();
     const durationSeconds = Math.floor((endTime - startTimeRef.current) / 1000);
     trackInternalEvent("flash_completed", {
       duration_seconds: durationSeconds,
     });
-    try {
-      localStorage.removeItem(NOTES_DRAFT_KEY);
-    } catch {
-      /* storage unavailable */
-    }
 
     const allNotes = [
       notesRef.current.trim(),
@@ -838,7 +872,7 @@ export default function LiveFlashScreen({ onComplete }: Props) {
       .join("\n");
 
     const flash: Flash = {
-      userId: user.uid,
+      userId: user?.uid ?? "",
       startTime: startTimeRef.current,
       endTime,
       durationSeconds,
@@ -850,22 +884,35 @@ export default function LiveFlashScreen({ onComplete }: Props) {
       }),
     };
 
-    try {
-      const ref = await addDoc(
-        collection(db, "users", user.uid, "flashes"),
-        flash,
-      );
-      flash.id = ref.id;
-    } catch {
+    if (user) {
+      try {
+        const ref = await addDoc(
+          collection(db, "users", user.uid, "flashes"),
+          flash,
+        );
+        flash.id = ref.id;
+      } catch {
+        try {
+          const PENDING_KEY = "flashyaf_pending_flashes";
+          const pending = JSON.parse(localStorage.getItem(PENDING_KEY) || "[]");
+          pending.push({ flashData: flash, userId: user.uid });
+          localStorage.setItem(PENDING_KEY, JSON.stringify(pending));
+        } catch {}
+      }
+    } else {
+      // FIX: no authenticated user at completion time (transient auth
+      // glitch). Queue the flash with no userId instead of dropping it -
+      // the pending-flash sync effect below now claims unassigned items
+      // for whichever user is logged in once one becomes available.
       try {
         const PENDING_KEY = "flashyaf_pending_flashes";
         const pending = JSON.parse(localStorage.getItem(PENDING_KEY) || "[]");
-        pending.push({ flashData: flash, userId: user.uid });
+        pending.push({ flashData: flash, userId: null });
         localStorage.setItem(PENDING_KEY, JSON.stringify(pending));
       } catch {}
     }
 
-    setSaving(false);
+  setSaving(false);
 
     const lastIdx = parseInt(
       localStorage.getItem("flashyaf_last_completion_idx") || "-1",
@@ -972,18 +1019,22 @@ export default function LiveFlashScreen({ onComplete }: Props) {
   useEffect(() => {
     if (!user || !isOnline) return;
     const PENDING_KEY = "flashyaf_pending_flashes";
-    const pending: { flashData: Flash; userId: string }[] = JSON.parse(
+    const pending: { flashData: Flash; userId: string | null }[] = JSON.parse(
       localStorage.getItem(PENDING_KEY) || "[]",
     );
     if (!pending.length) return;
     (async () => {
       const remaining: typeof pending = [];
       for (const item of pending) {
-        if (item.userId !== user.uid) {
+        if (item.userId && item.userId !== user.uid) {
           remaining.push(item);
           continue;
         }
-        try {
+        // FIX: correct the saved document's own userId field, not just the
+      // collection path it's filed under - items claimed here may have
+      // been queued with userId: null (see handleCompleteRef above).
+      item.flashData.userId = user.uid;
+      try {
           await addDoc(
             collection(db, "users", user.uid, "flashes"),
             item.flashData,
