@@ -13,6 +13,12 @@ interface Props {
 type State = "idle" | "recording" | "preview" | "uploading" | "saved" | "error";
 const MAX_SEC = 60;
 
+function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+return Promise.race([
+    p,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error("Operation timed out")), ms)),
+  ]);
+}
 export default function VoiceJournalModal({ flashId, userId, onClose, onSaved }: Props) {
   const [state, setState] = useState<State>("idle");
   const [elapsed, setElapsed] = useState(0);
@@ -69,16 +75,19 @@ export default function VoiceJournalModal({ flashId, userId, onClose, onSaved }:
     try {
       const blob = new Blob(chunks.current, { type: "audio/webm" });
       const sRef = storageRef(storage, `flashAudio/${userId}/${flashId}.webm`);
-      await uploadBytes(sRef, blob);
-      const url = await getDownloadURL(sRef);
-      await updateDoc(doc(db, "users", userId, "flashes", flashId), { audioNoteUrl: url });
+      await withTimeout(uploadBytes(sRef, blob), 20000);
+      const url = await withTimeout(getDownloadURL(sRef), 20000);
+      await withTimeout(updateDoc(doc(db, "users", userId, "flashes", flashId), { audioNoteUrl: url }),
+        20000,
+      );
       setState("saved");
       onSaved(url);
+      setTimeout(() => onClose(), 1800);
     } catch {
-      setErrMsg("Save failed. Your Firebase Storage may need to be enabled. Check your Firebase console.");
+      setErrMsg("Save failed — this took too long or hit a connection issue. Your Firebase Storage may need to be enabled. Check your Firebase console.");
       setState("error");
     }
-  }
+  }    
 
   const pct = (elapsed / MAX_SEC) * 100;
   const remaining = MAX_SEC - elapsed;
@@ -94,7 +103,7 @@ export default function VoiceJournalModal({ flashId, userId, onClose, onSaved }:
           {state === "recording" && `Recording… ${remaining}s remaining`}
           {state === "preview"   && "Listen back. Save it or re-record."}
           {state === "uploading" && "Saving your voice note…"}
-          {state === "saved"     && "✓ Voice note saved to your flash record."}
+          {state === "saved"     && "✓ Note Saved"}
           {state === "error"     && errMsg}
         </p>
 
