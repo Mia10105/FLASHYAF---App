@@ -321,6 +321,77 @@ function FlameBackground() {
     </div>
   );
 }
+// — Falling snowflake background for COOLING_DOWN stage; respects prefers-reduced-motion —
+const SNOWFLAKES = [
+  { left: "4%", size: "6px", dur: "9s", delay: "0s" },
+  { left: "12%", size: "4px", dur: "7s", delay: "1.2s" },
+  { left: "20%", size: "5px", dur: "10s", delay: "2.5s" },
+  { left: "28%", size: "3px", dur: "6.5s", delay: "0.8s" },
+  { left: "36%", size: "6px", dur: "8.5s", delay: "3.1s" },
+  { left: "44%", size: "4px", dur: "7.5s", delay: "1.8s" },
+  { left: "52%", size: "5px", dur: "9.5s", delay: "0.4s" },
+  { left: "60%", size: "3px", dur: "6s", delay: "2.2s" },
+  { left: "68%", size: "6px", dur: "10.5s", delay: "1.5s" },
+  { left: "76%", size: "4px", dur: "8s", delay: "3.4s" },
+  { left: "84%", size: "5px", dur: "7.2s", delay: "0.9s" },
+  { left: "92%", size: "3px", dur: "9.2s", delay: "2.7s" },
+  { left: "8%", size: "4px", dur: "11s", delay: "4s" },
+  { left: "16%", size: "6px", dur: "6.8s", delay: "1.1s" },
+  { left: "24%", size: "3px", dur: "8.8s", delay: "3.6s" },
+  { left: "32%", size: "5px", dur: "7.8s", delay: "0.2s" },
+  { left: "40%", size: "4px", dur: "10.2s", delay: "2.9s" },
+  { left: "48%", size: "6px", dur: "9.8s", delay: "1.6s" },
+  ];
+
+function SnowfallBackground() {
+    const reduceMotion =
+          typeof window !== "undefined" &&
+          window.matchMedia &&
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    return (
+          <div
+              style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    overflow: "hidden",
+                    zIndex: 0,
+                    pointerEvents: "none",
+              }}
+              >
+            {SNOWFLAKES.map((f, i) => (
+    <div
+      key={i}
+      className="flashyaf-snowflake"
+      style={{
+        position: "absolute",
+                top: "-6%",
+                left: f.left,
+                width: f.size,
+                height: f.size,
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.85)",
+                boxShadow: "0 0 4px rgba(255,255,255,0.5)",
+                animationName: reduceMotion ? "none" : "snowFall",
+                animationDuration: f.dur,
+                animationDelay: f.delay,
+                animationTimingFunction: "linear",
+                animationIterationCount: "infinite",
+      }}
+    />
+  ))}
+  <style>{`
+    @keyframes snowFall {
+      0% { transform: translateY(0) translateX(0); opacity: 0; }
+      10% { opacity: 0.9; }
+      100% { transform: translateY(640px) translateX(14px); opacity: 0.2; }
+    }
+  `}</style>
+          </div>
+  );
+}
 
 type DrawerType = "breathe" | "encourage" | null;
 type MicStatus =
@@ -1362,6 +1433,7 @@ export default function LiveFlashScreen({ onComplete }: Props) {
   const displayElapsed = timerFrozen ? frozenElapsedRef.current : elapsed;
   const isPeakStage = currentStage === "PEAK";
 
+  const isCoolingDownStage = currentStage === "COOLING_DOWN";
   // ── CHANGE: Top half keeps stage color; bottom half is always dark ──
   // Top gradient: stage color → transparent; container itself is dark
   const topGradient = isPeakStage
@@ -1651,6 +1723,7 @@ export default function LiveFlashScreen({ onComplete }: Props) {
       >
         {/* ── CHANGE: Top half colored overlay + flame for PEAK ── */}
         {isPeakStage && <FlameBackground />}
+        {isCoolingDownStage && <SnowfallBackground />}
         <div
           style={{
             position: "absolute",
