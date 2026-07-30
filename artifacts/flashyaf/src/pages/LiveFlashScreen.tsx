@@ -251,7 +251,7 @@ function FlameBackground() {
         top: 0,
         left: 0,
         right: 0,
-        height: "52%",
+        height: "52vh",
         overflow: "hidden",
         zIndex: 0,
         pointerEvents: "none",
