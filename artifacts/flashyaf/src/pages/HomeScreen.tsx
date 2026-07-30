@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from "react";
 import {
   collection,
   query,
@@ -29,15 +28,6 @@ import {
 } from "@/lib/journalStorage";
 
 const ADMIN_EMAIL = "iva@brownworks4u2.com";
-// FIX: was matching bare words like "start"/"begin" anywhere in speech,
-// which would false-trigger during normal conversation. Now requires the
-// actual documented phrase (or a close variant of it).
-const HOME_TRIGGERS = [
-  "hey flashy, i feel it coming",
-  "hey flashy i feel it coming",
-  "i feel it coming",
-  "hey flashy start",
-];
 
 const TIPS: { category: string; tip: string }[] = [
   {
@@ -377,7 +367,6 @@ export default function HomeScreen({
   });
   const [flashes, setFlashes] = useState<Flash[]>([]);
   const [activeFlashBanner, setActiveFlashBanner] = useState(false);
-  const [homeListening, setHomeListening] = useState(false);
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [todayCheckinCount, setTodayCheckinCount] = useState(0);
   const [logoTaps, setLogoTaps] = useState(0);
@@ -597,62 +586,6 @@ export default function HomeScreen({
       },
     );
   }, [user, isDemo]);
-
-  // Voice recognition
-  useEffect(() => {
-    const SpeechRecognitionAPI =
-      (
-        window as Window & {
-          webkitSpeechRecognition?: typeof SpeechRecognition;
-        }
-      ).webkitSpeechRecognition || window.SpeechRecognition;
-    if (!SpeechRecognitionAPI) return;
-    const recognition = new SpeechRecognitionAPI();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = "en-US";
-    const shouldRun = { current: true };
-    recognition.onstart = () => setHomeListening(true);
-    recognition.onend = () => {
-      if (shouldRun.current)
-        setTimeout(() => {
-          try {
-            recognition.start();
-          } catch {}
-        }, 400);
-    };
-    recognition.onerror = () => {
-      if (shouldRun.current)
-        setTimeout(() => {
-          try {
-            recognition.start();
-          } catch {}
-        }, 800);
-    };
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const t = event.results[i][0].transcript.toLowerCase().trim();
-        if (HOME_TRIGGERS.some((w) => t.includes(w))) {
-          shouldRun.current = false;
-          setHomeListening(false);
-          try {
-            recognition.stop();
-          } catch {}
-          onStartTrackingRef.current();
-          return;
-        }
-      }
-    };
-    try {
-      recognition.start();
-    } catch {}
-    return () => {
-      shouldRun.current = false;
-      try {
-        recognition.stop();
-      } catch {}
-    };
-  }, []);
 
   // Load stats + flashes
   useEffect(() => {
@@ -879,12 +812,6 @@ export default function HomeScreen({
             </span>
           )}
         </h1>
-        {homeListening && (
-          <div style={styles.homeMicPill}>
-            <span style={styles.homeMicDot} />
-            <span style={styles.homeMicLabel}>Say "Flashy" to start</span>
-          </div>
-        )}
         {/* Mic sleeping badge — shown when 30-sec privacy window expired */}
         {micSleeping && (
           <div
@@ -2118,30 +2045,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 900,
     letterSpacing: "2px",
     margin: 0,
-  },
-  homeMicPill: {
-    display: "flex",
-    alignItems: "center",
-    gap: "6px",
-    background: "rgba(255,255,255,0.08)",
-    border: "1px solid rgba(255,255,255,0.15)",
-    borderRadius: "100px",
-    padding: "4px 12px",
-  },
-  homeMicDot: {
-    width: "6px",
-    height: "6px",
-    borderRadius: "50%",
-    background: "#1ABC9C",
-    animation: "micPulse 1.4s ease-in-out infinite",
-    display: "inline-block",
-    flexShrink: 0,
-  },
-  homeMicLabel: {
-    color: "rgba(255,255,255,0.6)",
-    fontSize: "11px",
-    fontWeight: 600,
-    fontStyle: "italic",
   },
   content: {
     flex: 1,
