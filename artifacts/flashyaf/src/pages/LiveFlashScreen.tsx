@@ -613,7 +613,7 @@ export default function LiveFlashScreen({ onComplete }: Props) {
     if (notesSaveTimerRef.current) clearTimeout(notesSaveTimerRef.current);
     notesSaveTimerRef.current = setTimeout(
       () => setNotesSavedFlash(false),
-      2000,
+      1800,
     );
   }
   useEffect(() => {
@@ -2149,7 +2149,7 @@ export default function LiveFlashScreen({ onComplete }: Props) {
                   cursor: "pointer",
                 }}
               >
-                {notesSavedFlash ? "✓ Saved" : "💾 Save Note"}
+              {notesSavedFlash ? "✓ Note Saved" : "💾 Save Note"}
               </button>
             )}
             {showNoteJournal && (
