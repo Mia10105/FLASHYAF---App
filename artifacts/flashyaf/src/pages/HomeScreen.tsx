@@ -1490,26 +1490,28 @@ export default function HomeScreen({
                 margin: "0 0 8px",
               }}
             >
-              Where should your journal notes be saved?
+                            1498
+                            Where should your journal notes & voice recordings be saved?
             </p>
             <p
               style={{
-                color: "rgba(255,255,255,0.55)",
+                color: " rgba(255,255,255,0.55)",
                 fontSize: "13px",
                 lineHeight: 1.5,
                 margin: "0 0 20px",
               }}
             >
-              You can change this later in Settings.
+              By default, your notes and voice recordings stay only on this
+              device — stored privately in your browser and never uploaded.
             </p>
             <button
-              onClick={() => chooseJournalStorage("cloud")}
+              onClick={() => chooseJournalStorage("local")}
               style={{
                 width: "100%",
-                background: "rgba(139,68,173,0.2)",
+                background: " rgba(139,68,173,0.2)",
                 border: "1px solid rgba(142,68,173,0.6)",
                 borderRadius: "14px",
-                color: "#fff",
+                color: " #fff",
                 fontSize: "14px",
                 fontWeight: 700,
                 padding: "14px",
@@ -1518,27 +1520,28 @@ export default function HomeScreen({
                 textAlign: "left",
               }}
             >
-              ☁️ Save to my account
+              📱 Keep on this device only
               <div
                 style={{
                   fontSize: "11px",
                   fontWeight: 500,
-                  color: "rgba(255,255,255,0.5)",
+                  color: " rgba(255,255,255,0.5)",
                   marginTop: "4px",
                 }}
               >
-                Recommended — syncs across devices, free, and safe if you switch
-                phones.
+                Recommended — private by default. If you switch phones,
+                reinstall the app, or clear browser data, these notes will be
+                gone.
               </div>
             </button>
             <button
-              onClick={() => chooseJournalStorage("local")}
+              onClick={() => chooseJournalStorage("cloud")}
               style={{
                 width: "100%",
-                background: "rgba(255,255,255,0.06)",
+                background: " rgba(255,255,255,0.06)",
                 border: "1px solid rgba(255,255,255,0.15)",
                 borderRadius: "14px",
-                color: "#fff",
+                color: " #fff",
                 fontSize: "14px",
                 fontWeight: 700,
                 padding: "14px",
@@ -1546,17 +1549,16 @@ export default function HomeScreen({
                 textAlign: "left",
               }}
             >
-              📱 Keep on this device only
+              ☁️ Save to my account
               <div
                 style={{
                   fontSize: "11px",
                   fontWeight: 500,
-                  color: "rgba(255,255,255,0.5)",
+                  color: " rgba(255,255,255,0.5)",
                   marginTop: "4px",
                 }}
               >
-                Note: if you switch phones or reinstall the app, these notes
-                will be gone.
+                Syncs across devices and is backed up if you switch phones.
               </div>
             </button>
           </div>

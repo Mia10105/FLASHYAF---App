@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import type { Stage, StageEntry, Flash } from "@/types/flash";
 import BodyAreaSelector from "@/components/BodyAreaSelector";
 import { haptic } from "@/lib/haptic";
 import { trackEvent, trackInternalEvent } from "@/lib/analytics";
-import { saveJournalEntry } from "@/lib/journalStorage";
+import { saveJournalEntry, getJournalPreference } from "@/lib/journalStorage";
+import { saveLocalFlashContent, requestPersistentStorage } from "@/lib/localContent";
 
 const ENCOURAGEMENT_LINES = [
   "You have gotten through every single one of these. This is no different.",
@@ -883,14 +884,20 @@ export default function LiveFlashScreen({ onComplete }: Props) {
         bodyAreas: bodyAreasRef.current,
       }),
     };
-
-    if (user) {
-      try {
-        const ref = await addDoc(
-          collection(db, "users", user.uid, "flashes"),
-          flash,
-        );
-        flash.id = ref.id;
+const journalPref = getJournalPreference() ?? "local";
+if (user) {
+  try {
+    const flashRef = doc(collection(db, "users", user.uid, "flashes"));
+    const { notes: _localNotes, ...flashForCloud } = flash;
+    await setDoc(
+      flashRef,
+      journalPref === "local" ? flashForCloud : flash,
+    );
+    flash.id = flashRef.id;
+    if (journalPref === "local" && allNotes) {
+      await saveLocalFlashContent(flash.id, { notes: allNotes });
+      requestPersistentStorage();
+    }
       } catch {
         try {
           const PENDING_KEY = "flashyaf_pending_flashes";
@@ -910,8 +917,12 @@ export default function LiveFlashScreen({ onComplete }: Props) {
         pending.push({ flashData: flash, userId: null });
         localStorage.setItem(PENDING_KEY, JSON.stringify(pending));
       } catch {}
+        if (journalPref === "local" && allNotes) {
+    flash.id = flash.id || crypto.randomUUID();
+    await saveLocalFlashContent(flash.id, { notes: allNotes });
+    requestPersistentStorage();
+  }
     }
-
   setSaving(false);
 
     const lastIdx = parseInt(

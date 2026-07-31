@@ -43,7 +43,7 @@ function saveLocalAll(entries: JournalEntry[]): void {
 
 // ── Save a journal entry according to the user's chosen storage location ──
 export async function saveJournalEntry(entry: JournalEntry): Promise<void> {
-  const pref = getJournalPreference() ?? "cloud"; // default to the safer, synced option
+  const pref = getJournalPreference() ?? "local"; // default to the safer, synced option
   if (pref === "cloud") {
     try {
       await setDoc(doc(db, "users", entry.userId, "journalEntries", entry.id), entry);
@@ -60,7 +60,7 @@ export async function saveJournalEntry(entry: JournalEntry): Promise<void> {
 
 // ── Load all journal entries for this user, from wherever they're stored ──
 export async function loadJournalEntries(userId: string): Promise<JournalEntry[]> {
-  const pref = getJournalPreference() ?? "cloud";
+  const pref = getJournalPreference() ?? "local";
   const localEntries = loadLocalAll().filter((e) => e.userId === userId);
 
   if (pref === "local") {

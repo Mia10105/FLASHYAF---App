@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { doc, updateDoc } from "firebase/firestore";
 import { storage, db } from "@/lib/firebase";
+import { getJournalPreference } from "@/lib/journalStorage";
+import { saveLocalFlashContent } from "@/lib/localContent";
 
 interface Props {
   flashId: string;
@@ -74,6 +76,13 @@ export default function VoiceJournalModal({ flashId, userId, onClose, onSaved }:
     setState("uploading");
     try {
       const blob = new Blob(chunks.current, { type: "audio/webm" });
+          if ((getJournalPreference() ?? "local") === "local") {
+      await saveLocalFlashContent(flashId, { audioBlob: blob });
+      setState("saved");
+      onSaved(URL.createObjectURL(blob));
+      setTimeout(() => onClose(), 1800);
+      return;
+    }
       const sRef = storageRef(storage, `flashAudio/${userId}/${flashId}.webm`);
       await withTimeout(uploadBytes(sRef, blob), 20000);
       const url = await withTimeout(getDownloadURL(sRef), 20000);

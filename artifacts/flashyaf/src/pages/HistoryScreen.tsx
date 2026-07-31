@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { collection, query, orderBy, getDocs, doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
@@ -6,7 +6,7 @@ import { useDemo } from "@/context/DemoContext";
 import type { Flash, Stage } from "@/types/flash";
 import { ALL_BADGES, computeEarnedBadgeIds } from "@/lib/badges";
 import FlameSpinner from "@/components/FlameSpinner";
-
+import { getAllLocalFlashContent } from "@/lib/localContent";
 function buildDoctorReport(flashes: Flash[]): string {
   const now = new Date();
   const cutoff = Date.now() - 30 * 86400000;
@@ -172,11 +172,18 @@ function getMaxStage(flash: Flash): Stage {
 export default function HistoryScreen({ onNavigate }: Props) {
   const { user } = useAuth();
   const { isDemo, demoFlashes, demoBadgeIds } = useDemo();
-  const [flashes, setFlashes] = useState<Flash[]>([]);
+    const [flashes, setFlashes] = useState<Flash[]>([]);
+  const audioUrlsRef = useRef<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
   const [earnedIds, setEarnedIds] = useState<string[]>([]);
 
-  useEffect(() => {
+    useEffect(() => {
+    return () => {
+      audioUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
+
+useEffect(() => {
     if (isDemo) {
       setFlashes(demoFlashes);
       setEarnedIds(demoBadgeIds);
@@ -192,6 +199,21 @@ export default function HistoryScreen({ onNavigate }: Props) {
       ]);
 
       const loadedFlashes = flashSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Flash));
+          const localMap = new Map(
+      (await getAllLocalFlashContent()).map((c) => [c.id, c]),
+    );
+    for (const f of loadedFlashes) {
+      const local = f.id ? localMap.get(f.id) : undefined;
+      if (!local) continue;
+      if (local.notes) f.notes = local.notes;
+      if (local.audioBlob) {
+        const prevUrl = audioUrlsRef.current.get(f.id);
+        if (prevUrl) URL.revokeObjectURL(prevUrl);
+        const url = URL.createObjectURL(local.audioBlob);
+        audioUrlsRef.current.set(f.id, url);
+        f.audioNoteUrl = url;
+      }
+    }
       const userData = userSnap.exists() ? userSnap.data() : {};
       const partnerMode = !!userData.partnerMode;
       const storedBadgeIds: string[] = userData.earnedBadges || [];
