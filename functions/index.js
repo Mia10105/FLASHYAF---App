@@ -11,6 +11,25 @@ const db = admin.firestore();
 // filling out the Pioneer Beta interest form).
 exports.generateBetaToken = require("./generateBetaToken").generateBetaToken;
 
+// Account deletion — real recursive delete, plus the 90-day pause design
+// (see deleteAccount.js). Replaces incomplete client-side deletion (H4).
+const deleteAccountFns = require("./deleteAccount");
+exports.requestAccountDeletion = deleteAccountFns.requestAccountDeletion;
+exports.cancelPendingDeletion = deleteAccountFns.cancelPendingDeletion;
+exports.processPendingDeletions = deleteAccountFns.processPendingDeletions;
+
+// Beta application submission — atomic server-side token validation,
+// replacing the bypassable client-side-only gate (H6 + H7).
+exports.submitBetaApplication = require("./submitBetaApplication").submitBetaApplication;
+
+// JOIN10 referral crediting — NOT fully finished yet (see referralCredit.js
+// header). Records pending credits and reverses on refund, but the actual
+// $2/mo balance credit still needs one more piece built once we've talked
+// through how it should apply against your Stripe setup. Safe to deploy
+// as-is; it just won't do anything until the Stripe-side webhook + coupon
+// setup described in that file is in place.
+exports.stripeReferralWebhook = require("./referralCredit").stripeReferralWebhook;
+
 
 const TIME_BLOCKS = [
   { label: "Early Morning", hours: [5, 6, 7, 8] },
@@ -31,21 +50,67 @@ const BODY_AREA_LABELS = {
   hands: "Hands",
 };
 
+// Minimum number of consenting participants before we publish real
+// aggregate numbers at all. Below this, even "anonymous" averages can
+// effectively reveal one specific person's data — especially relevant
+// during a small Pioneer Beta cohort (audit finding H5).
+const MIN_PARTICIPANTS_TO_PUBLISH = 5;
+
 // ── The one place in the whole app allowed to read every user's raw flash
 // records — because it runs with trusted Admin privileges on our own server,
 // not on a user's device. It NEVER returns raw records to anyone; it only
 // ever writes finished, de-identified totals to publicStats/aggregates. ──
 async function computeResearchAggregates() {
+  // SECURITY FIX (H5): only include flash records belonging to users who
+  // have explicitly opted into research. Previously this had no consent
+  // check at all — it read every user's data unconditionally.
+  //
+  // NOTE: there's currently no Settings toggle in the app for a person to
+  // actually set researchConsent — that UI still needs to be built. Until
+  // it exists, this will correctly publish nothing (or a suppressed
+  // placeholder) rather than silently including everyone by default.
+  const consentingUsersSnap = await db
+    .collection("users")
+    .where("researchConsent", "==", true)
+    .get();
+  const consentingUids = new Set(consentingUsersSnap.docs.map((d) => d.id));
+
+  if (consentingUids.size < MIN_PARTICIPANTS_TO_PUBLISH) {
+    const suppressed = {
+      suppressed: true,
+      reason: "Not enough consenting participants yet to publish aggregate stats.",
+      participantCount: consentingUids.size,
+      updatedAt: Date.now(),
+    };
+    await db.doc("publicStats/aggregates").set(suppressed);
+    return suppressed;
+  }
+
   const flashesGroup = db.collectionGroup("flashes");
 
-  const [countSnap, sampleSnap, usersCountSnap] = await Promise.all([
-    flashesGroup.count().get(),
-    flashesGroup.orderBy("startTime", "desc").limit(1000).get(),
-    db.collectionGroup("users").count().get(),
-  ]);
+  // Pull a sample and filter it down to consenting users only. (A
+  // collectionGroup query can't easily filter by a field that lives on a
+  // different collection, so we filter the in-memory sample using each
+  // flash doc's own `userId` field instead of pushing this into Firestore
+  // query syntax.)
+  const sampleSnap = await flashesGroup.orderBy("startTime", "desc").limit(2000).get();
+  const docs = sampleSnap.docs
+    .map((d) => d.data())
+    .filter((d) => d.userId && consentingUids.has(d.userId));
 
-  const total = countSnap.data().count;
-  const docs = sampleSnap.docs.map((d) => d.data());
+  const participantUids = new Set(docs.map((d) => d.userId));
+  if (participantUids.size < MIN_PARTICIPANTS_TO_PUBLISH) {
+    const suppressed = {
+      suppressed: true,
+      reason: "Not enough consenting participants with flash data yet to publish aggregate stats.",
+      participantCount: participantUids.size,
+      updatedAt: Date.now(),
+    };
+    await db.doc("publicStats/aggregates").set(suppressed);
+    return suppressed;
+  }
+
+  const total = docs.length;
 
   const withDur = docs.filter((d) => d.durationSeconds > 0);
   const avgSec = withDur.length
@@ -103,7 +168,7 @@ async function computeResearchAggregates() {
     avgIntensity: Math.round(avgIntensity * 10) / 10,
     topBodyAreas,
     daysOfData,
-    totalUsers: usersCountSnap.data().count,
+    totalUsers: participantUids.size,
     updatedAt: Date.now(),
   };
 
@@ -119,14 +184,19 @@ exports.refreshResearchStatsScheduled = onSchedule(
   },
 );
 
-// Optional on-demand refresh, callable from the app by any signed-in user.
-// Still never returns raw records — only the same aggregate object that
-// gets cached for everyone.
+// Optional on-demand refresh — admin-only. Previously any signed-in user
+// could call this and trigger the expensive aggregate query (audit
+// finding M2); the scheduled function above already runs it every 6
+// hours automatically, so there's no need for it to be open to everyone.
 exports.refreshResearchStats = onCall(async (request) => {
-  if (!request.auth) {
+  if (
+    !request.auth
+    || request.auth.token.email !== "iva@brownworks4u2.com"
+    || request.auth.token.email_verified !== true
+  ) {
     throw new HttpsError(
-      "unauthenticated",
-      "You must be signed in to refresh research stats.",
+      "permission-denied",
+      "Only an admin can manually trigger a stats refresh.",
     );
   }
   return computeResearchAggregates();
