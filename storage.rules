@@ -1,0 +1,41 @@
+rules_version = '2';
+
+// FLASHYAF™ Firebase Storage rules.
+// Previously this file didn't exist in the repo, so the live rules
+// protecting voice recordings couldn't be verified, tested, or
+// reproduced from source control (audit finding H3).
+//
+// This restricts every voice recording to its owner only, matching the
+// same isOwner pattern already used in firestore.rules.
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Voice notes: flashAudio/{userId}/{flashId}.webm
+    // Only the signed-in owner may read or write their own recordings.
+    // (Storage download URLs act like bearer tokens once issued — the
+    // real fix for that is on the app side: store the Storage *path* in
+    // Firestore instead of calling getDownloadURL() and saving the URL.
+    // These rules are the access-control layer underneath that.)
+    match /flashAudio/{userId}/{fileName} {
+      allow read: if request.auth != null
+                  && request.auth.uid == userId;
+
+      // Single combined condition — owner match AND size cap (10 MB) AND
+      // correct content type, all required together.
+      allow create, update: if request.auth != null
+                           && request.auth.uid == userId
+                           && fileName.matches('.*\\.webm$')
+                           && request.resource.size < 10 * 1024 * 1024
+                           && request.resource.contentType == 'audio/webm';
+
+      allow delete: if request.auth != null
+                    && request.auth.uid == userId;
+    }
+
+    // Deny everything else by default — no open paths, no directory
+    // listing, nothing implicitly allowed.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
